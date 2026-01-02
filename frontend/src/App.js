@@ -5,7 +5,9 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 
 // Components
 import Navbar from './components/Navbar';
-import OwnerLayout from './components/OwnerLayout';
+import OwnerDashboard from './components/OwnerDashboard';
+import OwnerHomePage from './components/OwnerHomePage';
+import OwnerLandingPage from './components/OwnerLandingPage';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -57,7 +59,15 @@ function AppContent() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <Routes>
-        <Route path="/" element={<Home />} />
+        {/* Home Route - Different for owners vs users */}
+        <Route 
+          path="/" 
+          element={
+            isAuthenticated && user?.role === 'owner' ? 
+              <OwnerHomePage key="owner-home" /> : 
+              <Home />
+          } 
+        />
         <Route path="/search" element={<CarSearch />} />
         <Route path="/car/:id" element={<CarDetails />} />
         
@@ -76,7 +86,7 @@ function AppContent() {
           path="/dashboard" 
           element={
             <ProtectedRoute>
-              <Dashboard />
+              {user?.role === 'owner' ? <OwnerDashboard /> : <Dashboard />}
             </ProtectedRoute>
           } 
         />

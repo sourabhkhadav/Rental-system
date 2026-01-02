@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Upload, Car, FileText, MapPin, DollarSign } from 'lucide-react';
+import { Upload, Car, FileText, MapPin, DollarSign, ArrowLeft } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
@@ -109,7 +109,18 @@ const AddCar = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white rounded-lg shadow-sm">
+        {/* Back Button */}
+        <div className="bg-white border-b border-gray-100 px-6 py-4 rounded-t-lg">
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm font-medium transition-colors duration-200"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back</span>
+          </button>
+        </div>
+
+        <div className="bg-white rounded-b-lg shadow-sm">
           <div className="px-6 py-4 border-b border-gray-200">
             <h1 className="text-2xl font-bold text-gray-900 flex items-center">
               <Car className="h-6 w-6 mr-2 text-blue-600" />

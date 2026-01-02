@@ -16,9 +16,28 @@ const carSchema = new mongoose.Schema({
   // Images
   images: [{ type: String }],
   
-  // Pricing
-  pricePerDay: { type: Number, required: true },
+  // Dynamic Pricing
+  pricePerDay: { type: Number, required: true }, // Base price
+  dynamicPricing: {
+    enabled: { type: Boolean, default: false },
+    weekendPrice: { type: Number },
+    weekdayPrice: { type: Number },
+    seasonalRates: [{
+      name: String, // "Summer", "Winter", "Festival"
+      startDate: Date,
+      endDate: Date,
+      pricePerDay: Number
+    }],
+    customDates: [{
+      date: Date,
+      pricePerDay: Number,
+      reason: String // "Holiday", "Event"
+    }]
+  },
   securityDeposit: { type: Number, default: 0 },
+  
+  // KM Based Pricing
+  pricingType: { type: String, enum: ['unlimited', 'per_km'], default: 'unlimited' },
   maxKmPerDay: { type: Number, default: 300 },
   extraChargePerKm: { type: Number, default: 10 },
   
@@ -55,12 +74,50 @@ const carSchema = new mongoose.Schema({
   // Features
   features: [{ type: String }], // AC, GPS, etc.
   
+  // Availability Calendar
+  availabilityCalendar: [{
+    date: { type: Date, required: true },
+    status: { type: String, enum: ['available', 'blocked', 'booked', 'maintenance'], default: 'available' },
+    reason: String, // "Personal use", "Maintenance", "Booked"
+    bookingId: { type: mongoose.Schema.Types.ObjectId, ref: 'Booking' }
+  }],
+  
   // Blocked dates (when car is booked)
   blockedDates: [{
     from: Date,
     to: Date,
     bookingId: { type: mongoose.Schema.Types.ObjectId, ref: 'Booking' }
-  }]
+  }],
+  
+  // Maintenance & Service Log
+  maintenanceLog: [{
+    type: { type: String, enum: ['service', 'tyre_change', 'oil_change', 'repair', 'other'], required: true },
+    description: String,
+    cost: Number,
+    serviceDate: { type: Date, required: true },
+    nextServiceDate: Date,
+    serviceCenter: String,
+    odometer: Number,
+    documents: [String], // Receipt images
+    createdAt: { type: Date, default: Date.now }
+  }],
+  
+  // Service Reminders
+  serviceReminders: {
+    nextService: {
+      date: Date,
+      type: String,
+      kmsDue: Number
+    },
+    insurance: {
+      expiryDate: Date,
+      reminderSent: { type: Boolean, default: false }
+    },
+    pollution: {
+      expiryDate: Date,
+      reminderSent: { type: Boolean, default: false }
+    }
+  }
   
 }, { timestamps: true });
 

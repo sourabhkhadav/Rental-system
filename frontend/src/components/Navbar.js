@@ -44,7 +44,10 @@ const Navbar = () => {
                 {/* Owner Panel Button */}
                 {user?.role === 'owner' && (
                   <button
-                    onClick={() => setIsOwnerPanelOpen(true)}
+                    onClick={() => {
+                      console.log('Owner Panel button clicked');
+                      setIsOwnerPanelOpen(true);
+                    }}
                     className="text-gray-700 hover:text-primary-500"
                   >
                     Owner Panel

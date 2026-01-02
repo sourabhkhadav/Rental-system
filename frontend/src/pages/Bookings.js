@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { Calendar, Clock, User, Phone, MapPin, DollarSign } from 'lucide-react';
+import { Calendar, Clock, User, Phone, MapPin, DollarSign, ArrowLeft } from 'lucide-react';
 
 const Bookings = () => {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
@@ -139,124 +141,143 @@ const Bookings = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Booking Requests</h1>
-        <p className="text-gray-600">Manage your car booking requests</p>
+    <div className="min-h-screen bg-[#F7F7FB]">
+      {/* Back Button */}
+      <div className="bg-white border-b border-gray-100 px-6 py-4">
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm font-medium transition-colors duration-200"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span>Back</span>
+        </button>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
-            {[
-              { id: 'all', label: 'All Bookings', count: bookings.length },
-              { id: 'pending', label: 'Pending', count: bookings.filter(b => b.status === 'pending').length },
-              { id: 'accepted', label: 'Accepted', count: bookings.filter(b => b.status === 'accepted').length },
-              { id: 'completed', label: 'Completed', count: bookings.filter(b => b.status === 'completed').length }
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setFilter(tab.id)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
-                  filter === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                <span>{tab.label}</span>
-                <span className={`px-2 py-1 rounded-full text-xs ${
-                  filter === tab.id ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
-                }`}>
-                  {tab.count}
-                </span>
-              </button>
-            ))}
-          </nav>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* Header Section */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Booking Requests</h1>
+          <p className="text-gray-600">Manage your car booking requests</p>
         </div>
 
-        <div className="p-6">
-          {filteredBookings.length === 0 ? (
-            <div className="text-center py-8">
-              <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No bookings found</h3>
-              <p className="text-gray-600">
-                {filter === 'all' ? 'No booking requests yet.' : `No ${filter} bookings.`}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {filteredBookings.map((booking) => (
-                <div key={booking._id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex flex-col lg:flex-row lg:items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-4 mb-3">
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {booking.car.name} - {booking.car.brand}
-                        </h3>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
-                          {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                        </span>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-                        <div className="space-y-2">
-                          <div className="flex items-center space-x-2">
-                            <User className="h-4 w-4" />
-                            <span>{booking.user.name}</span>
+        {/* Filter Tabs */}
+        <div className="bg-white rounded-2xl shadow-lg border border-gray-100 mb-8">
+          <div className="border-b border-gray-100">
+            <nav className="flex space-x-8 px-6">
+              {[
+                { id: 'all', label: 'All Bookings', count: bookings.length },
+                { id: 'pending', label: 'Pending', count: bookings.filter(b => b.status === 'pending').length },
+                { id: 'accepted', label: 'Accepted', count: bookings.filter(b => b.status === 'accepted').length },
+                { id: 'completed', label: 'Completed', count: bookings.filter(b => b.status === 'completed').length }
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setFilter(tab.id)}
+                  className={`py-4 px-1 border-b-2 font-semibold text-sm flex items-center space-x-2 transition-colors ${
+                    filter === tab.id
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    filter === tab.id ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {tab.count}
+                  </span>
+                </button>
+              ))}
+            </nav>
+          </div>
+
+          <div className="p-6">
+            {filteredBookings.length === 0 ? (
+              <div className="text-center py-12">
+                <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-6" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">No bookings found</h3>
+                <p className="text-gray-600">
+                  {filter === 'all' ? 'No booking requests yet.' : `No ${filter} bookings.`}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredBookings.map((booking) => (
+                  <div key={booking._id} className="bg-gray-50 border border-gray-200 rounded-xl p-6 hover:bg-white hover:shadow-lg transition-all duration-300">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between">
+                      <div className="flex-1">
+                        {/* Header with Car Name and Status */}
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-xl font-bold text-gray-900">
+                            {booking.car.name} - {booking.car.brand}
+                          </h3>
+                          <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor(booking.status)}`}>
+                            {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                          </span>
+                        </div>
+                        
+                        {/* Customer and Booking Details */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                          <div className="space-y-3">
+                            <div className="flex items-center space-x-3">
+                              <User className="h-5 w-5 text-gray-400" />
+                              <span className="font-medium text-gray-900">{booking.user.name}</span>
+                            </div>
+                            <div className="flex items-center space-x-3">
+                              <Phone className="h-5 w-5 text-gray-400" />
+                              <span className="text-gray-700">{booking.user.phone}</span>
+                            </div>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <Phone className="h-4 w-4" />
-                            <span>{booking.user.phone}</span>
+                          
+                          <div className="space-y-3">
+                            <div className="flex items-center space-x-3">
+                              <Calendar className="h-5 w-5 text-gray-400" />
+                              <span className="text-gray-700">
+                                {new Date(booking.startDate).toLocaleDateString()} - {new Date(booking.endDate).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-3">
+                              <Clock className="h-5 w-5 text-gray-400" />
+                              <span className="text-gray-700">{booking.totalDays} days</span>
+                            </div>
                           </div>
                         </div>
                         
-                        <div className="space-y-2">
+                        {/* Price and Request Date */}
+                        <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
-                            <Calendar className="h-4 w-4" />
-                            <span>
-                              {new Date(booking.startDate).toLocaleDateString()} - {new Date(booking.endDate).toLocaleDateString()}
-                            </span>
+                            <DollarSign className="h-5 w-5 text-green-600" />
+                            <span className="text-2xl font-bold text-green-600">₹{booking.finalAmount.toLocaleString()}</span>
                           </div>
-                          <div className="flex items-center space-x-2">
-                            <Clock className="h-4 w-4" />
-                            <span>{booking.totalDays} days</span>
-                          </div>
+                          <span className="text-sm text-gray-500">
+                            Requested on {new Date(booking.createdAt).toLocaleDateString()}
+                          </span>
                         </div>
                       </div>
                       
-                      <div className="mt-3 flex items-center space-x-4 text-sm">
-                        <div className="flex items-center space-x-2 font-semibold text-green-600">
-                          <DollarSign className="h-4 w-4" />
-                          <span>₹{booking.finalAmount}</span>
+                      {/* Action Buttons */}
+                      {booking.status === 'pending' && (
+                        <div className="mt-6 lg:mt-0 lg:ml-6 flex space-x-3">
+                          <button
+                            onClick={() => handleBookingAction(booking._id, 'accept')}
+                            className="px-6 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 transition-colors shadow-lg hover:shadow-xl"
+                          >
+                            Accept
+                          </button>
+                          <button
+                            onClick={() => handleBookingAction(booking._id, 'reject')}
+                            className="px-6 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors shadow-lg hover:shadow-xl"
+                          >
+                            Reject
+                          </button>
                         </div>
-                        <span className="text-gray-500">
-                          Requested on {new Date(booking.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
+                      )}
                     </div>
-                    
-                    {booking.status === 'pending' && (
-                      <div className="mt-4 lg:mt-0 flex space-x-3">
-                        <button
-                          onClick={() => handleBookingAction(booking._id, 'accept')}
-                          className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
-                        >
-                          Accept
-                        </button>
-                        <button
-                          onClick={() => handleBookingAction(booking._id, 'reject')}
-                          className="px-4 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors"
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    )}
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

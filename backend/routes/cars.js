@@ -7,7 +7,15 @@ const {
   deleteCar,
   getOwnerStats,
   getAllCars,
-  getCarById
+  getCarById,
+  updateDynamicPricing,
+  getDynamicPrice,
+  updateAvailabilityCalendar,
+  addMaintenanceLog,
+  getMaintenanceHistory,
+  getAutoSuggestions,
+  createDispute,
+  getMyDisputes
 } = require('../controllers/carController');
 const { authenticate, authorize } = require('../middleware/auth');
 const { uploadCarFiles, handleUploadError } = require('../middleware/upload');
@@ -35,6 +43,16 @@ router.get('/my-cars', authenticate, authorize(['owner']), getMyCars);
 router.get('/owner-stats', authenticate, authorize(['owner']), getOwnerStats);
 router.put('/:id', authenticate, authorize(['owner']), uploadCarFiles, handleUploadError, updateCar);
 router.delete('/:id', authenticate, authorize(['owner']), deleteCar);
+
+// Advanced Features Routes
+router.put('/:carId/dynamic-pricing', authenticate, authorize(['owner']), updateDynamicPricing);
+router.get('/:carId/price/:date', getDynamicPrice);
+router.put('/:carId/availability', authenticate, authorize(['owner']), updateAvailabilityCalendar);
+router.post('/:carId/maintenance', authenticate, authorize(['owner']), uploadCarFiles, handleUploadError, addMaintenanceLog);
+router.get('/:carId/maintenance', authenticate, authorize(['owner']), getMaintenanceHistory);
+router.get('/:carId/auto-suggestions', authenticate, authorize(['owner']), getAutoSuggestions);
+router.post('/disputes', authenticate, authorize(['owner']), uploadCarFiles, handleUploadError, createDispute);
+router.get('/my-disputes', authenticate, authorize(['owner']), getMyDisputes);
 
 // Public routes
 router.get('/', getAllCars);

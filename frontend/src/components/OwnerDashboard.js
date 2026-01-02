@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { Car, Calendar, DollarSign, TrendingUp, Users } from 'lucide-react';
+import { Car, Calendar, DollarSign, TrendingUp, Users, Plus, Settings, Eye, User } from 'lucide-react';
 
 const OwnerDashboard = () => {
   const [stats, setStats] = useState({
@@ -37,105 +37,144 @@ const OwnerDashboard = () => {
   };
 
   if (loading) {
-    return <div className="text-center py-8">Loading dashboard...</div>;
+    return (
+      <div className="min-h-screen bg-[#F7F7FB] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Loading dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
+  const statCards = [
+    {
+      title: 'Total Cars',
+      value: stats.totalCars,
+      icon: Car,
+      color: 'bg-blue-500',
+      textColor: 'text-blue-600'
+    },
+    {
+      title: 'Active Cars',
+      value: stats.activeCars,
+      icon: Car,
+      color: 'bg-green-500',
+      textColor: 'text-green-600'
+    },
+    {
+      title: 'Total Bookings',
+      value: stats.totalBookings,
+      icon: Calendar,
+      color: 'bg-purple-500',
+      textColor: 'text-purple-600'
+    },
+    {
+      title: 'Total Earnings',
+      value: `₹${stats.totalEarnings.toLocaleString()}`,
+      icon: DollarSign,
+      color: 'bg-emerald-500',
+      textColor: 'text-emerald-600'
+    },
+    {
+      title: 'Pending Payout',
+      value: `₹${stats.pendingPayouts.toLocaleString()}`,
+      icon: TrendingUp,
+      color: 'bg-amber-500',
+      textColor: 'text-amber-600'
+    }
+  ];
+
+  const quickActions = [
+    {
+      title: 'Add New Car',
+      description: 'List a new vehicle for rental',
+      icon: Plus,
+      color: 'bg-blue-500',
+      link: '/add-car'
+    },
+    {
+      title: 'Manage Cars',
+      description: 'View and edit your vehicles',
+      icon: Settings,
+      color: 'bg-green-500',
+      link: '/my-cars'
+    },
+    {
+      title: 'View Bookings',
+      description: 'Check rental requests & history',
+      icon: Eye,
+      color: 'bg-purple-500',
+      link: '/bookings'
+    },
+    {
+      title: 'Update Profile',
+      description: 'Manage your account settings',
+      icon: User,
+      color: 'bg-gray-500',
+      link: '/profile'
+    }
+  ];
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
-        <p className="text-gray-600">Track your car rental business performance</p>
-      </div>
+    <div className="min-h-screen bg-[#F7F7FB]">
+      {/* Main Content Container */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        
+        {/* Section 1: Header */}
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-3">Dashboard Overview</h1>
+          <p className="text-lg text-gray-500">Track your car rental business performance</p>
+        </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Cars</p>
-              <p className="text-2xl font-bold text-gray-900">{stats.totalCars}</p>
-            </div>
-            <Car className="h-8 w-8 text-blue-600" />
-          </div>
+        {/* Section 2: Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-12">
+          {statCards.map((stat, index) => {
+            const IconComponent = stat.icon;
+            return (
+              <div 
+                key={index}
+                className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-gray-100"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-500 mb-2">{stat.title}</p>
+                    <p className={`text-3xl font-bold ${stat.textColor}`}>{stat.value}</p>
+                  </div>
+                  <div className={`w-12 h-12 ${stat.color} rounded-full flex items-center justify-center ml-4`}>
+                    <IconComponent className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
-        
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Active Cars</p>
-              <p className="text-2xl font-bold text-green-600">{stats.activeCars}</p>
-            </div>
-            <Car className="h-8 w-8 text-green-600" />
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Bookings</p>
-              <p className="text-2xl font-bold text-blue-600">{stats.totalBookings}</p>
-            </div>
-            <Calendar className="h-8 w-8 text-blue-600" />
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Earnings</p>
-              <p className="text-2xl font-bold text-green-600">₹{stats.totalEarnings}</p>
-            </div>
-            <DollarSign className="h-8 w-8 text-green-600" />
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Pending Payout</p>
-              <p className="text-2xl font-bold text-yellow-600">₹{stats.pendingPayouts}</p>
-            </div>
-            <TrendingUp className="h-8 w-8 text-yellow-600" />
-          </div>
-        </div>
-      </div>
 
-      {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Link
-            to="/add-car"
-            className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <Car className="h-8 w-8 text-blue-600 mb-2" />
-            <span className="text-sm font-medium text-gray-900">Add New Car</span>
-          </Link>
-          
-          <Link
-            to="/my-cars"
-            className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <Car className="h-8 w-8 text-green-600 mb-2" />
-            <span className="text-sm font-medium text-gray-900">Manage Cars</span>
-          </Link>
-          
-          <Link
-            to="/bookings"
-            className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <Calendar className="h-8 w-8 text-purple-600 mb-2" />
-            <span className="text-sm font-medium text-gray-900">View Bookings</span>
-          </Link>
-          
-          <Link
-            to="/profile"
-            className="flex flex-col items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <Users className="h-8 w-8 text-gray-600 mb-2" />
-            <span className="text-sm font-medium text-gray-900">Update Profile</span>
-          </Link>
+        {/* Section 3: Quick Actions */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Quick Actions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {quickActions.map((action, index) => {
+              const IconComponent = action.icon;
+              return (
+                <Link
+                  key={index}
+                  to={action.link}
+                  className="group bg-white rounded-2xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 hover:scale-105 border border-gray-100"
+                >
+                  <div className="text-center">
+                    <div className={`w-16 h-16 ${action.color} rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                      <IconComponent className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{action.title}</h3>
+                    <p className="text-sm text-gray-500">{action.description}</p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         </div>
+
       </div>
     </div>
   );
