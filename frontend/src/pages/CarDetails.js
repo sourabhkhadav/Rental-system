@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import { MapPin, Users, Fuel, Settings, Star, Calendar, Phone, Car } from 'lucide-react';
+import { MapPin, Users, Fuel, Settings, Star, Calendar, Phone, Car, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -201,50 +201,61 @@ const CarDetails = () => {
 
           {/* Booking Form */}
           <div className="lg:col-span-1">
-            <div className="card sticky top-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Book This Car</h3>
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 sticky top-8">
+              <div className="text-center mb-6">
+                <div className="text-3xl font-bold text-blue-600">₹{car.pricePerDay}</div>
+                <div className="text-gray-600">per day</div>
+                <div className="flex items-center justify-center mt-2">
+                  <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                  <span className="ml-1 text-sm text-gray-600">{car.rating || 'New'} ({car.totalRatings || 0} reviews)</span>
+                </div>
+              </div>
               
               <form onSubmit={handleBooking} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Start Date
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    className="input-field"
-                    value={bookingData.startDate}
-                    onChange={(e) => setBookingData({
-                      ...bookingData,
-                      startDate: e.target.value
-                    })}
-                    min={new Date().toISOString().split('T')[0]}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <Calendar className="h-4 w-4 inline mr-1" />
+                      Start Date
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={bookingData.startDate}
+                      onChange={(e) => setBookingData({
+                        ...bookingData,
+                        startDate: e.target.value
+                      })}
+                      min={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <Calendar className="h-4 w-4 inline mr-1" />
+                      End Date
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      value={bookingData.endDate}
+                      onChange={(e) => setBookingData({
+                        ...bookingData,
+                        endDate: e.target.value
+                      })}
+                      min={bookingData.startDate || new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    End Date
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    className="input-field"
-                    value={bookingData.endDate}
-                    onChange={(e) => setBookingData({
-                      ...bookingData,
-                      endDate: e.target.value
-                    })}
-                    min={bookingData.startDate || new Date().toISOString().split('T')[0]}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Special Requests (Optional)
                   </label>
                   <textarea
-                    className="input-field"
+                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     rows="3"
                     placeholder="Any special requirements..."
                     value={bookingData.specialRequests}
@@ -256,18 +267,30 @@ const CarDetails = () => {
                 </div>
 
                 {totalDays > 0 && (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex justify-between items-center mb-2">
-                      <span>Duration:</span>
-                      <span>{totalDays} days</span>
-                    </div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span>Price per day:</span>
-                      <span>₹{car.pricePerDay}</span>
-                    </div>
-                    <div className="flex justify-between items-center font-semibold text-lg border-t pt-2">
-                      <span>Total Amount:</span>
-                      <span>₹{totalAmount}</span>
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Duration:</span>
+                        <span className="font-medium">{totalDays} days</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Price per day:</span>
+                        <span className="font-medium">₹{car.pricePerDay}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Subtotal:</span>
+                        <span className="font-medium">₹{totalAmount}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Platform fee (5%):</span>
+                        <span className="font-medium">₹{Math.round(totalAmount * 0.05)}</span>
+                      </div>
+                      <div className="border-t border-blue-200 pt-2">
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold text-lg">Total Amount:</span>
+                          <span className="font-bold text-xl text-blue-600">₹{totalAmount + Math.round(totalAmount * 0.05)}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -275,17 +298,43 @@ const CarDetails = () => {
                 <button
                   type="submit"
                   disabled={bookingLoading || !isAuthenticated}
-                  className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                 >
-                  {bookingLoading ? 'Sending Request...' : 'Send Booking Request'}
+                  {bookingLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Sending Request...
+                    </>
+                  ) : (
+                    'Send Booking Request'
+                  )}
                 </button>
 
                 {!isAuthenticated && (
-                  <p className="text-sm text-gray-600 text-center">
-                    Please login to book this car
-                  </p>
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600 mb-2">Please login to book this car</p>
+                    <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+                      Login Now
+                    </Link>
+                  </div>
                 )}
               </form>
+
+              {/* Security Features */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
+                <div className="flex items-center space-x-2 text-sm text-gray-600 mb-2">
+                  <Shield className="h-4 w-4 text-green-500" />
+                  <span>Verified owner</span>
+                </div>
+                <div className="flex items-center space-x-2 text-sm text-gray-600 mb-2">
+                  <Shield className="h-4 w-4 text-green-500" />
+                  <span>Insurance covered</span>
+                </div>
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <Shield className="h-4 w-4 text-green-500" />
+                  <span>24/7 support</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

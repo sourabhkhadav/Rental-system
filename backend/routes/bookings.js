@@ -13,11 +13,11 @@ const router = express.Router();
 
 // User routes
 router.post('/', userOnly, createBooking);
-router.get('/my-bookings', userOnly, getUserBookings);
+router.get('/user-bookings', userOnly, getUserBookings);
 
 // Owner routes
 router.put('/:bookingId/handle', ownerOnly, handleBookingRequest);
-router.get('/owner/bookings', ownerOnly, getOwnerBookings);
+router.get('/owner-bookings', ownerOnly, getOwnerBookings);
 
 // Common routes (user or owner)
 router.put('/:bookingId/cancel', authenticate, cancelBooking);

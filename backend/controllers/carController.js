@@ -168,29 +168,30 @@ exports.getAllCars = async (req, res) => {
     
     let query = { status: 'approved' };
     
-    if (city) {
-      query['pickupLocation.city'] = new RegExp(city, 'i');
+    // Sanitize and validate inputs
+    if (city && typeof city === 'string') {
+      query['pickupLocation.city'] = new RegExp(city.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
     }
     
-    if (seats) {
+    if (seats && !isNaN(parseInt(seats))) {
       query.seats = { $gte: parseInt(seats) };
     }
     
-    if (fuelType) {
+    if (fuelType && ['petrol', 'diesel', 'cng', 'electric'].includes(fuelType)) {
       query.fuelType = fuelType;
     }
     
-    if (transmission) {
+    if (transmission && ['manual', 'automatic'].includes(transmission)) {
       query.transmission = transmission;
     }
     
-    if (minPrice || maxPrice) {
+    if ((minPrice && !isNaN(parseInt(minPrice))) || (maxPrice && !isNaN(parseInt(maxPrice)))) {
       query.pricePerDay = {};
-      if (minPrice) query.pricePerDay.$gte = parseInt(minPrice);
-      if (maxPrice) query.pricePerDay.$lte = parseInt(maxPrice);
+      if (minPrice && !isNaN(parseInt(minPrice))) query.pricePerDay.$gte = parseInt(minPrice);
+      if (maxPrice && !isNaN(parseInt(maxPrice))) query.pricePerDay.$lte = parseInt(maxPrice);
     }
 
-    const cars = await Car.find(query)
+    let cars = await Car.find(query)
       .populate('owner', 'name phone rating')
       .sort({ createdAt: -1 });
 

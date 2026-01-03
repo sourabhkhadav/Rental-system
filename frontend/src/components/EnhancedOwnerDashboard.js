@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { Car, Plus, Calendar, Clock, MapPin, Star, Edit, Trash2, Eye, DollarSign, Users, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
+import Card from './ui/Card';
 
 const OwnerDashboard = () => {
   const [cars, setCars] = useState([]);

@@ -31,7 +31,16 @@ const Login = () => {
       
       if (result.success) {
         toast.success('Login successful!');
-        navigate('/dashboard');
+        // Redirect based on user role
+        if (result.user.role === 'user') {
+          navigate('/');
+        } else if (result.user.role === 'owner') {
+          navigate('/dashboard');
+        } else if (result.user.role === 'admin') {
+          navigate('/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       } else {
         toast.error(result.message);
       }

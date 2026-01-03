@@ -1,105 +1,55 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
-import { Calendar, Clock, User, Phone, MapPin, DollarSign } from 'lucide-react';
+import { Calendar, Clock, User, Phone, MapPin, DollarSign, Car } from 'lucide-react';
+import { DEFAULT_CAR_IMAGE } from '../hooks';
 
 const Bookings = () => {
-  const [bookings, setBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [bookings, setBookings] = useState([
+    {
+      _id: '1',
+      user: {
+        name: 'Rahul Sharma',
+        phone: '+91 9876543210',
+        email: 'rahul@example.com'
+      },
+      car: {
+        name: 'Swift Dzire',
+        brand: 'Maruti',
+        numberPlate: 'MH12AB1234',
+        images: [DEFAULT_CAR_IMAGE]
+      },
+      startDate: '2024-01-15',
+      endDate: '2024-01-18',
+      totalDays: 3,
+      finalAmount: 3600,
+      status: 'pending',
+      createdAt: '2024-01-10T10:30:00Z'
+    },
+    {
+      _id: '2',
+      user: {
+        name: 'Priya Patel',
+        phone: '+91 8765432109',
+        email: 'priya@example.com'
+      },
+      car: {
+        name: 'Honda City',
+        brand: 'Honda',
+        numberPlate: 'MH14CD5678',
+        images: [DEFAULT_CAR_IMAGE]
+      },
+      startDate: '2024-01-12',
+      endDate: '2024-01-14',
+      totalDays: 2,
+      finalAmount: 3600,
+      status: 'accepted',
+      createdAt: '2024-01-08T14:20:00Z'
+    }
+  ]);
+  const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState('all');
 
-  useEffect(() => {
-    fetchBookings();
-  }, []);
 
-  const fetchBookings = async () => {
-    try {
-      const response = await axios.get('/api/bookings/owner-bookings');
-      setBookings(response.data.bookings);
-    } catch (error) {
-      console.error('Error fetching bookings:', error);
-      // Dummy data
-      setBookings([
-        {
-          _id: '1',
-          user: {
-            name: 'Rahul Sharma',
-            phone: '+91 9876543210',
-            email: 'rahul@example.com'
-          },
-          car: {
-            name: 'Swift Dzire',
-            brand: 'Maruti',
-            numberPlate: 'MH12AB1234'
-          },
-          startDate: '2024-01-15',
-          endDate: '2024-01-18',
-          totalDays: 3,
-          finalAmount: 3600,
-          status: 'pending',
-          createdAt: '2024-01-10T10:30:00Z'
-        },
-        {
-          _id: '2',
-          user: {
-            name: 'Priya Patel',
-            phone: '+91 8765432109',
-            email: 'priya@example.com'
-          },
-          car: {
-            name: 'Honda City',
-            brand: 'Honda',
-            numberPlate: 'MH14CD5678'
-          },
-          startDate: '2024-01-12',
-          endDate: '2024-01-14',
-          totalDays: 2,
-          finalAmount: 3600,
-          status: 'accepted',
-          createdAt: '2024-01-08T14:20:00Z'
-        },
-        {
-          _id: '3',
-          user: {
-            name: 'Amit Kumar',
-            phone: '+91 7654321098',
-            email: 'amit@example.com'
-          },
-          car: {
-            name: 'Hyundai Creta',
-            brand: 'Hyundai',
-            numberPlate: 'MH01EF9012'
-          },
-          startDate: '2024-01-05',
-          endDate: '2024-01-08',
-          totalDays: 3,
-          finalAmount: 7500,
-          status: 'completed',
-          createdAt: '2024-01-02T09:15:00Z'
-        },
-        {
-          _id: '4',
-          user: {
-            name: 'Sneha Gupta',
-            phone: '+91 6543210987',
-            email: 'sneha@example.com'
-          },
-          car: {
-            name: 'Swift Dzire',
-            brand: 'Maruti',
-            numberPlate: 'MH12AB1234'
-          },
-          startDate: '2024-01-20',
-          endDate: '2024-01-22',
-          totalDays: 2,
-          finalAmount: 2400,
-          status: 'rejected',
-          createdAt: '2024-01-18T16:45:00Z'
-        }
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleBookingAction = async (bookingId, action) => {
     try {

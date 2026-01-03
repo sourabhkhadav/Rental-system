@@ -37,6 +37,7 @@ router.put('/:id', authenticate, authorize(['owner']), uploadCarFiles, handleUpl
 router.delete('/:id', authenticate, authorize(['owner']), deleteCar);
 
 // Public routes
+router.get('/search', getAllCars);
 router.get('/', getAllCars);
 router.get('/:id', getCarById);
 

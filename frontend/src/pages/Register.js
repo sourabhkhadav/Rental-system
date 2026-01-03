@@ -34,7 +34,12 @@ const Register = () => {
       
       if (result.success) {
         toast.success('Registration successful! Please wait for admin approval.');
-        navigate('/dashboard');
+        // Redirect based on user role
+        if (formData.role === 'user') {
+          navigate('/');
+        } else {
+          navigate('/dashboard');
+        }
       } else {
         toast.error(result.message);
       }

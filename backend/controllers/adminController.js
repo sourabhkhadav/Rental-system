@@ -14,7 +14,9 @@ exports.getDashboardStats = async (req, res) => {
       pendingOwners,
       pendingCars,
       completedBookings,
-      totalEarnings
+      activeBookings,
+      totalEarnings,
+      monthlyEarnings
     ] = await Promise.all([
       User.countDocuments({ role: 'user' }),
       User.countDocuments({ role: 'owner' }),
@@ -24,8 +26,23 @@ exports.getDashboardStats = async (req, res) => {
       User.countDocuments({ role: 'owner', status: 'pending' }),
       Car.countDocuments({ status: 'pending' }),
       Booking.countDocuments({ status: 'completed' }),
+      Booking.countDocuments({ status: 'active' }),
       Booking.aggregate([
         { $match: { status: 'completed' } },
+        { $group: { _id: null, total: { $sum: '$platformFee' } } }
+      ]),
+      Booking.aggregate([
+        { 
+          $match: { 
+            status: 'completed',
+            createdAt: { 
+              $gte: (() => {
+                const now = new Date();
+                return new Date(now.getFullYear(), now.getMonth(), 1);
+              })()
+            }
+          } 
+        },
         { $group: { _id: null, total: { $sum: '$platformFee' } } }
       ])
     ]);
@@ -43,10 +60,13 @@ exports.getDashboardStats = async (req, res) => {
           cars: pendingCars
         },
         completedBookings,
-        totalEarnings: totalEarnings[0]?.total || 0
+        activeBookings,
+        totalEarnings: totalEarnings[0]?.total || 0,
+        monthlyEarnings: monthlyEarnings[0]?.total || 0
       }
     });
   } catch (error) {
+    console.error('Dashboard stats error:', error);
     res.status(500).json({ message: error.message });
   }
 };
