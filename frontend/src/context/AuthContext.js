@@ -3,7 +3,7 @@ import axios from 'axios';
 
 // Configure axios base URL
 axios.defaults.baseURL = 'http://localhost:5005';
-axios.defaults.timeout = 10000;
+axios.defaults.timeout = 600000; // 10 minutes for file uploads
 
 console.log('API Base URL:', axios.defaults.baseURL);
 

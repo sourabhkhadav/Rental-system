@@ -6,13 +6,31 @@ require('dotenv').config();
 
 const app = express();
 
+// Environment variables with defaults
+const PORT = process.env.PORT || 5000;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/car-rental';
+
+// CORS configuration - dynamic based on environment
+const corsOptions = {
+  origin: NODE_ENV === 'production' 
+    ? process.env.FRONTEND_URL?.split(',') || ['https://your-frontend-domain.com']
+    : ['http://localhost:3000', 'http://localhost:3001'],
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
 // Middleware
-app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001'],
-  credentials: true
-}));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Request timeout middleware
+app.use((req, res, next) => {
+  req.setTimeout(300000); // 5 minutes for file uploads
+  res.setTimeout(300000);
+  next();
+});
 
 // Static files (not needed with Cloudinary)
 // app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -40,14 +58,36 @@ app.use('*', (req, res) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/car-rental')
-  .then(() => {
-    console.log('Connected to MongoDB');
-  })
-  .catch(err => console.error('MongoDB connection error:', err));
+// Database connection with retry logic
+const connectDB = async () => {
+  try {
+    const conn = await mongoose.connect(MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    });
+    console.log(`MongoDB Connected: ${conn.connection.host}`);
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    // Retry connection after 5 seconds
+    setTimeout(connectDB, 5000);
+  }
+};
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+connectDB();
+
+const server = app.listen(PORT, () => {
+  console.log(`Server running in ${NODE_ENV} mode on port ${PORT}`);
+  console.log(`CORS enabled for: ${JSON.stringify(corsOptions.origin)}`);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, shutting down gracefully');
+  server.close(() => {
+    console.log('Process terminated');
+    mongoose.connection.close();
+  });
 });

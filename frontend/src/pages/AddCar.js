@@ -90,7 +90,8 @@ const AddCar = () => {
 
       console.log('Submitting car data...');
       const response = await axios.post('/api/cars', submitData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 600000 // 10 minutes
       });
 
       console.log('Response:', response.data);

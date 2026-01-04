@@ -15,8 +15,8 @@ router.get('/owner', authenticate, authorize(['owner']), async (req, res) => {
     const completedBookings = bookings.filter(b => b.status === 'completed');
     const pendingBookings = bookings.filter(b => ['accepted', 'confirmed'].includes(b.status));
 
-    const totalEarnings = completedBookings.reduce((sum, b) => sum + b.finalAmount, 0);
-    const pendingPayouts = pendingBookings.reduce((sum, b) => sum + b.finalAmount, 0);
+    const totalEarnings = completedBookings.reduce((sum, b) => sum + (b.finalAmount || 0), 0);
+    const pendingPayouts = pendingBookings.reduce((sum, b) => sum + (b.finalAmount || 0), 0);
 
     // This month earnings
     const currentMonth = new Date().getMonth();
@@ -25,17 +25,17 @@ router.get('/owner', authenticate, authorize(['owner']), async (req, res) => {
       const bookingDate = new Date(b.createdAt);
       return bookingDate.getMonth() === currentMonth && bookingDate.getFullYear() === currentYear;
     });
-    const thisMonth = thisMonthBookings.reduce((sum, b) => sum + b.finalAmount, 0);
+    const thisMonth = thisMonthBookings.reduce((sum, b) => sum + (b.finalAmount || 0), 0);
 
     // Transaction history
     const transactions = bookings.map(booking => ({
       _id: booking._id,
       bookingId: `BK${booking._id.toString().slice(-6).toUpperCase()}`,
-      carName: booking.car.name,
-      customerName: booking.user.name,
-      amount: booking.finalAmount,
-      commission: Math.round(booking.finalAmount * 0.05), // 5% commission
-      netAmount: Math.round(booking.finalAmount * 0.95),
+      carName: booking.car?.name || 'Unknown Car',
+      customerName: booking.user?.name || 'Unknown User',
+      amount: booking.finalAmount || 0,
+      commission: Math.round((booking.finalAmount || 0) * 0.05), // 5% commission
+      netAmount: Math.round((booking.finalAmount || 0) * 0.95),
       status: booking.status === 'completed' ? 'completed' : 'pending',
       date: booking.createdAt
     }));
@@ -48,6 +48,7 @@ router.get('/owner', authenticate, authorize(['owner']), async (req, res) => {
       transactions
     });
   } catch (error) {
+    console.error('Earnings route error:', error);
     res.status(500).json({ message: error.message });
   }
 });

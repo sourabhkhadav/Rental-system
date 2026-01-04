@@ -24,6 +24,7 @@ router.put('/:bookingId/reject', authenticate, authorize(['owner']), (req, res) 
   req.body.action = 'reject';
   handleBookingRequest(req, res);
 });
+// Get Owner's Bookings
 router.get('/owner-bookings', authenticate, authorize(['owner']), getOwnerBookings);
 
 // Common routes (user or owner)
