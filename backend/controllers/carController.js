@@ -8,7 +8,11 @@ exports.addCar = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array() 
+      });
     }
 
     const {
@@ -17,39 +21,47 @@ exports.addCar = async (req, res) => {
       availableFrom, availableTo, pickupAddress, pickupCity, features
     } = req.body;
 
-    // Check if number plate already exists
-    const existingCar = await Car.findOne({ numberPlate });
+    const existingCar = await Car.findOne({ numberPlate: numberPlate.toUpperCase() });
     if (existingCar) {
-      return res.status(400).json({ message: 'Car with this number plate already exists' });
+      return res.status(400).json({ 
+        success: false,
+        message: `Car with number plate ${numberPlate.toUpperCase()} already exists. Please use a different number plate.` 
+      });
     }
 
-    // Handle file uploads
-    const images = req.files.images ? req.files.images.map(file => file.path) : [];
-    const rcDocument = req.files.rcDocument ? req.files.rcDocument[0].path : null;
-    const insurance = req.files.insurance ? req.files.insurance[0].path : null;
-    const pollutionCert = req.files.pollutionCert ? req.files.pollutionCert[0].path : null;
+    const images = req.files?.images ? req.files.images.map(file => file.path) : [];
+    const rcDocument = req.files?.rcDocument?.[0]?.path;
+    const insurance = req.files?.insurance?.[0]?.path;
+    const pollutionCert = req.files?.pollutionCert?.[0]?.path;
+
+    if (!rcDocument || !insurance || images.length === 0) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'RC Document, Insurance Document and Car Images are required' 
+      });
+    }
 
     const car = await Car.create({
       owner: req.user.id,
       name,
       brand,
       model,
-      year,
+      year: parseInt(year),
       numberPlate: numberPlate.toUpperCase(),
       fuelType,
-      seats,
+      seats: parseInt(seats),
       transmission,
-      pricePerDay,
-      securityDeposit: securityDeposit || 0,
-      maxKmPerDay: maxKmPerDay || 300,
-      extraChargePerKm: extraChargePerKm || 10,
-      availableFrom,
-      availableTo,
+      pricePerDay: parseFloat(pricePerDay),
+      securityDeposit: securityDeposit ? parseFloat(securityDeposit) : 0,
+      maxKmPerDay: maxKmPerDay ? parseInt(maxKmPerDay) : 300,
+      extraChargePerKm: extraChargePerKm ? parseFloat(extraChargePerKm) : 10,
+      availableFrom: new Date(availableFrom),
+      availableTo: new Date(availableTo),
       pickupLocation: {
         address: pickupAddress,
         city: pickupCity
       },
-      features: features ? JSON.parse(features) : [],
+      features: features ? (typeof features === 'string' ? JSON.parse(features) : features) : [],
       images,
       rcDocument,
       insurance,
@@ -62,25 +74,36 @@ exports.addCar = async (req, res) => {
       car
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Add car error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: error.message 
+    });
   }
 };
 
 // Get My Cars
 exports.getMyCars = async (req, res) => {
   try {
+    console.log('getMyCars called by user:', req.user);
     const cars = await Car.find({ owner: req.user.id }).sort({ createdAt: -1 });
+    console.log('Found cars:', cars.length);
     res.json({ success: true, cars });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('getMyCars error:', error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
 // Get Owner Stats
 exports.getOwnerStats = async (req, res) => {
   try {
+    console.log('getOwnerStats called by user:', req.user.id);
+    
     const cars = await Car.find({ owner: req.user.id });
     const bookings = await Booking.find({ owner: req.user.id });
+
+    console.log('Found cars:', cars.length, 'bookings:', bookings.length);
 
     const stats = {
       totalCars: cars.length,
@@ -88,15 +111,17 @@ exports.getOwnerStats = async (req, res) => {
       totalBookings: bookings.length,
       totalEarnings: bookings
         .filter(b => b.status === 'completed')
-        .reduce((sum, b) => sum + b.finalAmount, 0),
+        .reduce((sum, b) => sum + (b.finalAmount || 0), 0),
       pendingPayouts: bookings
         .filter(b => ['accepted', 'confirmed'].includes(b.status))
-        .reduce((sum, b) => sum + b.finalAmount, 0)
+        .reduce((sum, b) => sum + (b.finalAmount || 0), 0)
     };
 
+    console.log('Calculated stats:', stats);
     res.json({ success: true, stats });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('getOwnerStats error:', error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -138,9 +163,14 @@ exports.updateCar = async (req, res) => {
 // Delete Car
 exports.deleteCar = async (req, res) => {
   try {
+    console.log('Delete car request for ID:', req.params.id, 'by user:', req.user.id);
+    
     const car = await Car.findOne({ _id: req.params.id, owner: req.user.id });
     if (!car) {
-      return res.status(404).json({ message: 'Car not found' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Car not found or you do not have permission to delete this car' 
+      });
     }
 
     // Check if car has active bookings
@@ -151,14 +181,24 @@ exports.deleteCar = async (req, res) => {
 
     if (activeBookings.length > 0) {
       return res.status(400).json({ 
+        success: false,
         message: 'Cannot delete car with active bookings' 
       });
     }
 
     await Car.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: 'Car deleted successfully' });
+    console.log('Car deleted successfully:', req.params.id);
+    
+    res.json({ 
+      success: true, 
+      message: 'Car deleted successfully' 
+    });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Delete car error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: error.message 
+    });
   }
 };
 

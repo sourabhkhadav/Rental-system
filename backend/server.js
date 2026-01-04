@@ -7,17 +7,21 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:3001'],
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Static files
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Static files (not needed with Cloudinary)
+// app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/cars', require('./routes/cars'));
 app.use('/api/bookings', require('./routes/bookings'));
+app.use('/api/earnings', require('./routes/earnings'));
 app.use('/api/admin', require('./routes/admin'));
 
 // Health check
@@ -40,33 +44,8 @@ app.use('*', (req, res) => {
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/car-rental')
   .then(() => {
     console.log('Connected to MongoDB');
-    
-    // Create admin user if not exists
-    createAdminUser();
   })
   .catch(err => console.error('MongoDB connection error:', err));
-
-// Create default admin user
-async function createAdminUser() {
-  try {
-    const User = require('./models/User');
-    const adminExists = await User.findOne({ role: 'admin' });
-    
-    if (!adminExists) {
-      await User.create({
-        name: 'Admin',
-        email: process.env.ADMIN_EMAIL || 'admin@carrental.com',
-        password: process.env.ADMIN_PASSWORD || 'admin123',
-        phone: '9999999999',
-        role: 'admin',
-        status: 'approved'
-      });
-      console.log('Admin user created');
-    }
-  } catch (error) {
-    console.error('Error creating admin user:', error);
-  }
-}
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

@@ -7,17 +7,24 @@ const {
   cancelBooking,
   addReview
 } = require('../controllers/bookingController');
-const { userOnly, ownerOnly, authenticate } = require('../middleware/auth');
+const { authenticate, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
 // User routes
-router.post('/', userOnly, createBooking);
-router.get('/my-bookings', userOnly, getUserBookings);
+router.post('/', authenticate, authorize(['user']), createBooking);
+router.get('/my-bookings', authenticate, authorize(['user']), getUserBookings);
 
 // Owner routes
-router.put('/:bookingId/handle', ownerOnly, handleBookingRequest);
-router.get('/owner/bookings', ownerOnly, getOwnerBookings);
+router.put('/:bookingId/accept', authenticate, authorize(['owner']), (req, res) => {
+  req.body.action = 'accept';
+  handleBookingRequest(req, res);
+});
+router.put('/:bookingId/reject', authenticate, authorize(['owner']), (req, res) => {
+  req.body.action = 'reject';
+  handleBookingRequest(req, res);
+});
+router.get('/owner-bookings', authenticate, authorize(['owner']), getOwnerBookings);
 
 // Common routes (user or owner)
 router.put('/:bookingId/cancel', authenticate, cancelBooking);

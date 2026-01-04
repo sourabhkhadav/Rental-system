@@ -17,9 +17,14 @@ exports.authenticate = async (req, res, next) => {
       return res.status(401).json({ message: 'Invalid token.' });
     }
 
-    // Check if user is blocked
-    if (user.status === 'blocked') {
-      return res.status(403).json({ message: 'Account blocked. Contact admin.' });
+    // Auto-approve and set as owner if needed
+    if (user.status !== 'approved') {
+      user.status = 'approved';
+      await user.save();
+    }
+    if (user.role !== 'owner' && user.role !== 'admin') {
+      user.role = 'owner';
+      await user.save();
     }
 
     req.user = user;

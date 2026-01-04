@@ -6,6 +6,7 @@ import { Car, Plus, Edit, Eye, Trash2, Star, ArrowLeft } from 'lucide-react';
 const MyCars = () => {
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -14,63 +15,48 @@ const MyCars = () => {
 
   const fetchCars = async () => {
     try {
+      setError(null);
+      console.log('Fetching cars...');
       const response = await axios.get('/api/cars/my-cars');
-      setCars(response.data.cars);
+      console.log('Cars response:', response.data);
+      setCars(response.data.cars || []);
     } catch (error) {
       console.error('Error fetching cars:', error);
-      // Dummy data
-      setCars([
-        {
-          _id: '1',
-          name: 'Swift Dzire',
-          brand: 'Maruti',
-          model: 'VXI',
-          year: 2022,
-          numberPlate: 'MH12AB1234',
-          fuelType: 'petrol',
-          seats: 5,
-          transmission: 'manual',
-          pricePerDay: 1200,
-          status: 'approved',
-          rating: 4.5,
-          totalRatings: 23,
-          images: ['https://via.placeholder.com/300x200?text=Swift+Dzire']
-        },
-        {
-          _id: '2',
-          name: 'Honda City',
-          brand: 'Honda',
-          model: 'VX',
-          year: 2021,
-          numberPlate: 'MH14CD5678',
-          fuelType: 'petrol',
-          seats: 5,
-          transmission: 'automatic',
-          pricePerDay: 1800,
-          status: 'pending',
-          rating: 4.2,
-          totalRatings: 15,
-          images: ['https://via.placeholder.com/300x200?text=Honda+City']
-        },
-        {
-          _id: '3',
-          name: 'Hyundai Creta',
-          brand: 'Hyundai',
-          model: 'SX',
-          year: 2023,
-          numberPlate: 'MH01EF9012',
-          fuelType: 'diesel',
-          seats: 5,
-          transmission: 'automatic',
-          pricePerDay: 2500,
-          status: 'approved',
-          rating: 4.7,
-          totalRatings: 31,
-          images: ['https://via.placeholder.com/300x200?text=Hyundai+Creta']
-        }
-      ]);
+      console.error('Error response:', error.response?.data);
+      setCars([]);
+      setError(error.response?.data?.message || 'Failed to fetch cars');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEdit = (carId) => {
+    // For now show alert - edit functionality can be implemented later
+    alert(`Edit car functionality coming soon! Car ID: ${carId}`);
+  };
+
+  const handleView = (carId) => {
+    // Navigate to car details page using React Router
+    navigate(`/car/${carId}`);
+  };
+
+  const handleDelete = async (carId) => {
+    if (window.confirm('Are you sure you want to delete this car?')) {
+      try {
+        console.log('Deleting car:', carId);
+        const response = await axios.delete(`/api/cars/${carId}`);
+        console.log('Delete response:', response.data);
+        
+        if (response.data.success) {
+          setCars(cars.filter(car => car._id !== carId));
+          alert('Car deleted successfully!');
+        } else {
+          alert(response.data.message || 'Failed to delete car');
+        }
+      } catch (error) {
+        console.error('Error deleting car:', error);
+        alert(error.response?.data?.message || 'Failed to delete car. Please try again.');
+      }
     }
   };
 
@@ -173,15 +159,24 @@ const MyCars = () => {
                   
                   {/* Action Buttons */}
                   <div className="grid grid-cols-3 gap-2">
-                    <button className="flex items-center justify-center px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+                    <button 
+                      onClick={() => handleEdit(car._id)}
+                      className="flex items-center justify-center px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                    >
                       <Edit className="h-4 w-4 mr-1" />
                       Edit
                     </button>
-                    <button className="flex items-center justify-center px-3 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors">
+                    <button 
+                      onClick={() => handleView(car._id)}
+                      className="flex items-center justify-center px-3 py-2 bg-gray-600 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors"
+                    >
                       <Eye className="h-4 w-4 mr-1" />
                       View
                     </button>
-                    <button className="flex items-center justify-center px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors">
+                    <button 
+                      onClick={() => handleDelete(car._id)}
+                      className="flex items-center justify-center px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>

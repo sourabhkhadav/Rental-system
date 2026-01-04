@@ -88,14 +88,23 @@ const AddCar = () => {
         submitData.append('images', image);
       });
 
-      await axios.post('/api/cars', submitData, {
+      console.log('Submitting car data...');
+      const response = await axios.post('/api/cars', submitData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      toast.success('Car added successfully! Waiting for admin approval.');
-      navigate('/dashboard');
+      console.log('Response:', response.data);
+      
+      if (response.data.success) {
+        toast.success(response.data.message || 'Car added successfully!');
+        navigate('/dashboard');
+      } else {
+        toast.error(response.data.message || 'Failed to add car');
+      }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to add car');
+      console.error('Submit error:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to add car';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

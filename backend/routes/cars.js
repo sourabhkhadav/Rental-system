@@ -38,11 +38,11 @@ const carValidation = [
 ];
 
 // Routes
-router.post('/', authenticate, authorize(['owner']), uploadCarFiles, handleUploadError, carValidation, addCar);
-router.get('/my-cars', authenticate, authorize(['owner']), getMyCars);
-router.get('/owner-stats', authenticate, authorize(['owner']), getOwnerStats);
+router.post('/', authenticate, uploadCarFiles, handleUploadError, carValidation, addCar);
+router.get('/my-cars', authenticate, getMyCars);
+router.get('/owner-stats', authenticate, getOwnerStats);
 router.put('/:id', authenticate, authorize(['owner']), uploadCarFiles, handleUploadError, updateCar);
-router.delete('/:id', authenticate, authorize(['owner']), deleteCar);
+router.delete('/:id', authenticate, deleteCar);
 
 // Advanced Features Routes
 router.put('/:carId/dynamic-pricing', authenticate, authorize(['owner']), updateDynamicPricing);

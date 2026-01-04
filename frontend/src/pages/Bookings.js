@@ -7,6 +7,7 @@ const Bookings = () => {
   const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filter, setFilter] = useState('all');
 
   useEffect(() => {
@@ -15,89 +16,14 @@ const Bookings = () => {
 
   const fetchBookings = async () => {
     try {
+      setError(null);
       const response = await axios.get('/api/bookings/owner-bookings');
-      setBookings(response.data.bookings);
+      setBookings(response.data.bookings || []);
     } catch (error) {
       console.error('Error fetching bookings:', error);
-      // Dummy data
-      setBookings([
-        {
-          _id: '1',
-          user: {
-            name: 'Rahul Sharma',
-            phone: '+91 9876543210',
-            email: 'rahul@example.com'
-          },
-          car: {
-            name: 'Swift Dzire',
-            brand: 'Maruti',
-            numberPlate: 'MH12AB1234'
-          },
-          startDate: '2024-01-15',
-          endDate: '2024-01-18',
-          totalDays: 3,
-          finalAmount: 3600,
-          status: 'pending',
-          createdAt: '2024-01-10T10:30:00Z'
-        },
-        {
-          _id: '2',
-          user: {
-            name: 'Priya Patel',
-            phone: '+91 8765432109',
-            email: 'priya@example.com'
-          },
-          car: {
-            name: 'Honda City',
-            brand: 'Honda',
-            numberPlate: 'MH14CD5678'
-          },
-          startDate: '2024-01-12',
-          endDate: '2024-01-14',
-          totalDays: 2,
-          finalAmount: 3600,
-          status: 'accepted',
-          createdAt: '2024-01-08T14:20:00Z'
-        },
-        {
-          _id: '3',
-          user: {
-            name: 'Amit Kumar',
-            phone: '+91 7654321098',
-            email: 'amit@example.com'
-          },
-          car: {
-            name: 'Hyundai Creta',
-            brand: 'Hyundai',
-            numberPlate: 'MH01EF9012'
-          },
-          startDate: '2024-01-05',
-          endDate: '2024-01-08',
-          totalDays: 3,
-          finalAmount: 7500,
-          status: 'completed',
-          createdAt: '2024-01-02T09:15:00Z'
-        },
-        {
-          _id: '4',
-          user: {
-            name: 'Sneha Gupta',
-            phone: '+91 6543210987',
-            email: 'sneha@example.com'
-          },
-          car: {
-            name: 'Swift Dzire',
-            brand: 'Maruti',
-            numberPlate: 'MH12AB1234'
-          },
-          startDate: '2024-01-20',
-          endDate: '2024-01-22',
-          totalDays: 2,
-          finalAmount: 2400,
-          status: 'rejected',
-          createdAt: '2024-01-18T16:45:00Z'
-        }
-      ]);
+      // Always show structure, never show error for empty bookings
+      setBookings([]);
+      setError(null);
     } finally {
       setLoading(false);
     }
@@ -105,10 +31,8 @@ const Bookings = () => {
 
   const handleBookingAction = async (bookingId, action) => {
     try {
-      // Simulate API call
-      console.log(`${action} booking ${bookingId}`);
+      await axios.put(`/api/bookings/${bookingId}/${action}`);
       
-      // Update local state
       setBookings(bookings.map(booking => 
         booking._id === bookingId 
           ? { ...booking, status: action === 'accept' ? 'accepted' : 'rejected' }
@@ -116,6 +40,7 @@ const Bookings = () => {
       ));
     } catch (error) {
       console.error(`Error ${action} booking:`, error);
+      alert(`Failed to ${action} booking. Please try again.`);
     }
   };
 
@@ -195,10 +120,25 @@ const Bookings = () => {
             {filteredBookings.length === 0 ? (
               <div className="text-center py-12">
                 <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-6" />
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">No bookings found</h3>
-                <p className="text-gray-600">
-                  {filter === 'all' ? 'No booking requests yet.' : `No ${filter} bookings.`}
+                <h3 className="text-xl font-semibold text-gray-900 mb-3">
+                  {filter === 'all' ? 'No booking requests yet' : `No ${filter} bookings`}
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  {filter === 'all' 
+                    ? 'When customers book your cars, their requests will appear here.' 
+                    : `No bookings with ${filter} status found.`
+                  }
                 </p>
+                {filter === 'all' && (
+                  <div className="text-sm text-gray-500">
+                    <p>Make sure your cars are:</p>
+                    <ul className="mt-2 space-y-1">
+                      <li>• Listed and approved</li>
+                      <li>• Available for booking</li>
+                      <li>• Properly priced</li>
+                    </ul>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-4">

@@ -12,6 +12,7 @@ const Earnings = () => {
     transactions: []
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchEarnings();
@@ -19,50 +20,17 @@ const Earnings = () => {
 
   const fetchEarnings = async () => {
     try {
+      setError(null);
       const response = await axios.get('/api/earnings/owner');
       setEarnings(response.data);
     } catch (error) {
       console.error('Error fetching earnings:', error);
-      // Dummy data
+      setError(error.response?.data?.message || 'Failed to fetch earnings. Please try again.');
       setEarnings({
-        totalEarnings: 45000,
-        thisMonth: 12500,
-        pendingPayouts: 8500,
-        transactions: [
-          {
-            _id: '1',
-            bookingId: 'BK001',
-            carName: 'Swift Dzire',
-            customerName: 'Rahul Sharma',
-            amount: 3600,
-            commission: 360,
-            netAmount: 3240,
-            status: 'completed',
-            date: '2024-01-18T10:30:00Z'
-          },
-          {
-            _id: '2',
-            bookingId: 'BK002',
-            carName: 'Honda City',
-            customerName: 'Priya Patel',
-            amount: 3600,
-            commission: 360,
-            netAmount: 3240,
-            status: 'pending',
-            date: '2024-01-15T14:20:00Z'
-          },
-          {
-            _id: '3',
-            bookingId: 'BK003',
-            carName: 'Hyundai Creta',
-            customerName: 'Amit Kumar',
-            amount: 7500,
-            commission: 750,
-            netAmount: 6750,
-            status: 'completed',
-            date: '2024-01-10T09:15:00Z'
-          }
-        ]
+        totalEarnings: 0,
+        thisMonth: 0,
+        pendingPayouts: 0,
+        transactions: []
       });
     } finally {
       setLoading(false);
@@ -77,6 +45,35 @@ const Earnings = () => {
 
   if (loading) {
     return <div className="text-center py-8">Loading earnings...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#F7F7FB]">
+        <div className="bg-white border-b border-gray-100 px-6 py-4">
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm font-medium transition-colors duration-200"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back</span>
+          </button>
+        </div>
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
+            <div className="text-red-500 text-6xl mb-6">⚠️</div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">Error Loading Earnings</h3>
+            <p className="text-gray-600 mb-6">{error}</p>
+            <button
+              onClick={fetchEarnings}
+              className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

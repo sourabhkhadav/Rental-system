@@ -15,6 +15,19 @@ const OwnerDashboard = () => {
 
   useEffect(() => {
     fetchStats();
+    
+    // Auto-refresh when component becomes visible
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchStats();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const fetchStats = async () => {
@@ -23,13 +36,13 @@ const OwnerDashboard = () => {
       setStats(response.data.stats);
     } catch (error) {
       console.error('Error fetching stats:', error);
-      // Use dummy data if API fails
+      // Show zero stats if API fails
       setStats({
-        totalCars: 5,
-        activeCars: 3,
-        totalBookings: 12,
-        totalEarnings: 45000,
-        pendingPayouts: 8500
+        totalCars: 0,
+        activeCars: 0,
+        totalBookings: 0,
+        totalEarnings: 0,
+        pendingPayouts: 0
       });
     } finally {
       setLoading(false);
@@ -122,9 +135,18 @@ const OwnerDashboard = () => {
       <div className="max-w-7xl mx-auto px-6 py-8">
         
         {/* Section 1: Header */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-3">Dashboard Overview</h1>
-          <p className="text-lg text-gray-500">Track your car rental business performance</p>
+        <div className="mb-12 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-gray-900 mb-3">Dashboard Overview</h1>
+            <p className="text-lg text-gray-500">Track your car rental business performance</p>
+          </div>
+          <button
+            onClick={fetchStats}
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+          >
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Refresh Stats
+          </button>
         </div>
 
         {/* Section 2: Stats Cards */}
