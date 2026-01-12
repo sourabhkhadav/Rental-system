@@ -3,6 +3,30 @@ import axios from 'axios';
 
 const AuthContext = createContext();
 
+const api = axios.create({
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5005',
+  headers: { 'Content-Type': 'application/json' }
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 const initialState = {
   user: null,
   token: localStorage.getItem('token'),
@@ -46,6 +70,11 @@ const authReducer = (state, action) => {
         isAuthenticated: false,
         loading: false
       };
+    case 'UPDATE_USER':
+      return {
+        ...state,
+        user: action.payload
+      };
     default:
       return state;
   }
@@ -54,16 +83,6 @@ const authReducer = (state, action) => {
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Set auth token in axios headers
-  useEffect(() => {
-    if (state.token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${state.token}`;
-    } else {
-      delete axios.defaults.headers.common['Authorization'];
-    }
-  }, [state.token]);
-
-  // Load user on app start
   useEffect(() => {
     if (state.token) {
       loadUser();
@@ -74,7 +93,7 @@ export const AuthProvider = ({ children }) => {
 
   const loadUser = async () => {
     try {
-      const res = await axios.get('/api/auth/me');
+      const res = await api.get('/api/auth/me');
       dispatch({ type: 'LOAD_USER', payload: res.data.user });
     } catch (error) {
       dispatch({ type: 'AUTH_ERROR' });
@@ -83,9 +102,12 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const res = await axios.post('/api/auth/login', { email, password });
-      dispatch({ type: 'LOGIN_SUCCESS', payload: res.data });
-      return { success: true, user: res.data.user };
+      const res = await api.post('/api/auth/login', { email, password });
+      if (res.data.success) {
+        dispatch({ type: 'LOGIN_SUCCESS', payload: res.data });
+        return { success: true, user: res.data.user };
+      }
+      return { success: false, message: res.data.message };
     } catch (error) {
       return { 
         success: false, 
@@ -96,13 +118,35 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const res = await axios.post('/api/auth/register', userData);
-      dispatch({ type: 'LOGIN_SUCCESS', payload: res.data });
-      return { success: true };
+      const res = await api.post('/api/auth/register', userData);
+      if (res.data.success) {
+        if (userData.role === 'owner') {
+          return { success: true, message: res.data.message, requiresApproval: true };
+        }
+        dispatch({ type: 'LOGIN_SUCCESS', payload: res.data });
+        return { success: true, user: res.data.user, message: res.data.message };
+      }
+      return { success: false, message: res.data.message };
     } catch (error) {
       return { 
         success: false, 
         message: error.response?.data?.message || 'Registration failed' 
+      };
+    }
+  };
+
+  const updateProfile = async (profileData) => {
+    try {
+      const res = await api.put('/api/auth/profile', profileData);
+      if (res.data.success) {
+        dispatch({ type: 'UPDATE_USER', payload: res.data.user });
+        return { success: true, message: res.data.message };
+      }
+      return { success: false, message: res.data.message };
+    } catch (error) {
+      return { 
+        success: false, 
+        message: error.response?.data?.message || 'Profile update failed' 
       };
     }
   };
@@ -117,7 +161,8 @@ export const AuthProvider = ({ children }) => {
       login,
       register,
       logout,
-      loadUser
+      loadUser,
+      updateProfile
     }}>
       {children}
     </AuthContext.Provider>

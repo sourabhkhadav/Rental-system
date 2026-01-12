@@ -31,14 +31,15 @@ exports.register = async (req, res) => {
       email,
       password,
       phone,
-      role: role || 'user'
+      role: role || 'user',
+      status: role === 'owner' ? 'pending' : 'approved'
     });
 
     const token = generateToken(user._id);
 
     res.status(201).json({
       success: true,
-      message: 'Registration successful. Please wait for admin approval.',
+      message: role === 'owner' ? 'Registration successful. Please wait for admin approval.' : 'Registration successful!',
       token,
       user: {
         id: user._id,
@@ -115,13 +116,92 @@ exports.getMe = async (req, res) => {
 exports.updateProfile = async (req, res) => {
   try {
     const updates = req.body;
+    
+    // Don't allow updating sensitive fields
+    delete updates.password;
+    delete updates.role;
+    delete updates.status;
+    
     const user = await User.findByIdAndUpdate(
       req.user.id,
       updates,
       { new: true, runValidators: true }
     ).select('-password');
 
-    res.json({ success: true, user });
+    res.json({ success: true, user, message: 'Profile updated successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Delete User Account
+exports.deleteAccount = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if user has active bookings or cars
+    const Booking = require('../models/Booking');
+    const Car = require('../models/Car');
+    
+    const activeBookings = await Booking.find({
+      $or: [
+        { user: req.user.id, status: { $in: ['pending', 'accepted', 'confirmed'] } },
+        { owner: req.user.id, status: { $in: ['pending', 'accepted', 'confirmed'] } }
+      ]
+    });
+
+    if (activeBookings.length > 0) {
+      return res.status(400).json({ 
+        message: 'Cannot delete account with active bookings. Please complete or cancel all bookings first.' 
+      });
+    }
+
+    const userCars = await Car.find({ owner: req.user.id });
+    if (userCars.length > 0) {
+      return res.status(400).json({ 
+        message: 'Cannot delete account with registered cars. Please remove all cars first.' 
+      });
+    }
+
+    await User.findByIdAndDelete(req.user.id);
+    res.json({ success: true, message: 'Account deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Change Password
+exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Current password and new password are required' });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({ message: 'New password must be at least 6 characters' });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check current password
+    const isCurrentPasswordValid = await user.comparePassword(currentPassword);
+    if (!isCurrentPasswordValid) {
+      return res.status(401).json({ message: 'Current password is incorrect' });
+    }
+
+    // Update password
+    user.password = newPassword;
+    await user.save();
+
+    res.json({ success: true, message: 'Password changed successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

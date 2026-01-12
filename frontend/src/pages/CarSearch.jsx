@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Search, MapPin, Users, Fuel, Settings, Calendar, Car, Star, Filter, SlidersHorizontal } from 'lucide-react';
 import { DEFAULT_CAR_IMAGE } from '../hooks';
-import axios from 'axios';
+import { carService } from '../services/api';
 
 const CarSearch = () => {
   const [searchParams] = useSearchParams();
@@ -27,13 +27,18 @@ const CarSearch = () => {
   const fetchCars = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, value);
-      });
+      const response = await carService.searchCars(filters);
       
-      const response = await axios.get(`/api/cars/search?${params.toString()}`);
-      setCars(response.data.cars || []);
+      if (response.success && Array.isArray(response.cars)) {
+        // Ensure each car has a default image if none provided
+        const carsWithImages = response.cars.map(car => ({
+          ...car,
+          images: car.images && car.images.length > 0 ? car.images : [DEFAULT_CAR_IMAGE]
+        }));
+        setCars(carsWithImages);
+      } else {
+        setCars([]);
+      }
     } catch (error) {
       console.error('Error fetching cars:', error);
       setCars([]);

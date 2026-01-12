@@ -8,7 +8,7 @@ const UserBookings = () => {
     {
       _id: '1',
       car: {
-        name: 'Swift Dzire',
+        name: 'Sample Car',
         brand: 'Maruti Suzuki',
         numberPlate: 'MH12AB1234',
         images: [DEFAULT_CAR_IMAGE],

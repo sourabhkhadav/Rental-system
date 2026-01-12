@@ -4,7 +4,9 @@ const {
   register,
   login,
   getMe,
-  updateProfile
+  updateProfile,
+  deleteAccount,
+  changePassword
 } = require('../controllers/authController');
 const { authenticate } = require('../middleware/auth');
 const { uploadProfile, handleUploadError } = require('../middleware/upload');
@@ -25,10 +27,17 @@ const loginValidation = [
   body('password').notEmpty().withMessage('Password is required')
 ];
 
+const changePasswordValidation = [
+  body('currentPassword').notEmpty().withMessage('Current password is required'),
+  body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters')
+];
+
 // Routes
 router.post('/register', registerValidation, register);
 router.post('/login', loginValidation, login);
 router.get('/me', authenticate, getMe);
 router.put('/profile', authenticate, uploadProfile, handleUploadError, updateProfile);
+router.put('/change-password', authenticate, changePasswordValidation, changePassword);
+router.delete('/account', authenticate, deleteAccount);
 
 module.exports = router;

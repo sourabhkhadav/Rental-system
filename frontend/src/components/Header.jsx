@@ -73,7 +73,7 @@ const Header = () => {
                 
                 {user?.role === 'admin' && (
                   <Link 
-                    to="/dashboard" 
+                    to="/admin/dashboard" 
                     className="flex items-center space-x-2 px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
                   >
                     <Settings className="h-4 w-4" />
@@ -203,7 +203,7 @@ const Header = () => {
                   
                   {user?.role === 'admin' && (
                     <Link
-                      to="/dashboard"
+                      to="/admin/dashboard"
                       className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
                       onClick={() => setIsMenuOpen(false)}
                     >

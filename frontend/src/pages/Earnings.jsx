@@ -30,7 +30,7 @@ const Earnings = () => {
           {
             _id: '1',
             bookingId: 'BK001',
-            carName: 'Swift Dzire',
+            carName: 'Sample Car',
             customerName: 'Rahul Sharma',
             amount: 3600,
             commission: 360,

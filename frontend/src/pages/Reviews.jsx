@@ -31,7 +31,7 @@ const Reviews = () => {
             profilePhoto: null
           },
           car: {
-            name: 'Swift Dzire',
+            name: 'Sample Car',
             brand: 'Maruti'
           },
           rating: 5,
@@ -73,7 +73,7 @@ const Reviews = () => {
             profilePhoto: null
           },
           car: {
-            name: 'Swift Dzire',
+            name: 'Sample Car',
             brand: 'Maruti'
           },
           rating: 4,

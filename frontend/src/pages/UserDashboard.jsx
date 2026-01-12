@@ -50,7 +50,7 @@ const UserDashboard = () => {
       setRecentBookings([
         {
           _id: '1',
-          car: { name: 'Swift Dzire', brand: 'Maruti', images: ['https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400'] },
+          car: { name: 'Sample Car', brand: 'Maruti', images: ['https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400'] },
           startDate: '2024-01-25',
           endDate: '2024-01-27',
           status: 'accepted',
@@ -69,7 +69,7 @@ const UserDashboard = () => {
       setFeaturedCars([
         {
           _id: '1',
-          name: 'Swift Dzire',
+          name: 'Sample Car',
           brand: 'Maruti',
           pricePerDay: 1200,
           rating: 4.5,

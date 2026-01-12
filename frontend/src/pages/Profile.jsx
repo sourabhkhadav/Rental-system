@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { User, Phone, Mail, MapPin, CreditCard, FileText, Camera } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { User, Phone, Mail, MapPin, CreditCard, FileText, Camera, Lock, Trash2, Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
 const Profile = () => {
-  const { user, loadUser } = useAuth();
+  const { user, loadUser, updateProfile, changePassword, deleteAccount } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('personal');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [showPasswords, setShowPasswords] = useState({ current: false, new: false });
   
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -23,6 +28,11 @@ const Profile = () => {
     aadharNumber: user?.aadhar?.number || ''
   });
 
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: ''
+  });
+
   const [files, setFiles] = useState({
     profilePhoto: null,
     drivingLicense: null,
@@ -32,6 +42,13 @@ const Profile = () => {
   const handleChange = (e) => {
     setFormData({
       ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handlePasswordChange = (e) => {
+    setPasswordData({
+      ...passwordData,
       [e.target.name]: e.target.value
     });
   };
@@ -48,49 +65,85 @@ const Profile = () => {
     setLoading(true);
 
     try {
-      const submitData = new FormData();
+      let result;
       
       if (section === 'personal') {
-        submitData.append('name', formData.name);
-        submitData.append('phone', formData.phone);
-        submitData.append('address', formData.address);
-        submitData.append('city', formData.city);
-        
-        if (files.profilePhoto) {
-          submitData.append('profilePhoto', files.profilePhoto);
-        }
+        const updateData = {
+          name: formData.name,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city
+        };
+        result = await updateProfile(updateData);
       } else if (section === 'bank') {
-        submitData.append('bankDetails', JSON.stringify({
-          accountNumber: formData.accountNumber,
-          ifscCode: formData.ifscCode,
-          accountHolderName: formData.accountHolderName
-        }));
+        const updateData = {
+          bankDetails: {
+            accountNumber: formData.accountNumber,
+            ifscCode: formData.ifscCode,
+            accountHolderName: formData.accountHolderName
+          }
+        };
+        result = await updateProfile(updateData);
       } else if (section === 'kyc') {
-        submitData.append('drivingLicense', JSON.stringify({
-          number: formData.drivingLicenseNumber
-        }));
-        submitData.append('aadhar', JSON.stringify({
-          number: formData.aadharNumber
-        }));
-        
-        if (files.drivingLicense) {
-          submitData.append('drivingLicense', files.drivingLicense);
-        }
-        if (files.aadhar) {
-          submitData.append('aadhar', files.aadhar);
-        }
+        const updateData = {
+          drivingLicense: {
+            number: formData.drivingLicenseNumber
+          },
+          aadhar: {
+            number: formData.aadharNumber
+          }
+        };
+        result = await updateProfile(updateData);
       }
 
-      await axios.put('/api/auth/profile', submitData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-
-      toast.success('Profile updated successfully!');
-      loadUser(); // Refresh user data
+      if (result.success) {
+        toast.success(result.message);
+        loadUser(); // Refresh user data
+      } else {
+        toast.error(result.message);
+      }
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to update profile');
+      toast.error('Failed to update profile');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const result = await changePassword(passwordData);
+      if (result.success) {
+        toast.success(result.message);
+        setPasswordData({ currentPassword: '', newPassword: '' });
+        setShowPasswordForm(false);
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      toast.error('Failed to change password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setLoading(true);
+    try {
+      const result = await deleteAccount();
+      if (result.success) {
+        toast.success(result.message);
+        navigate('/login');
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      toast.error('Failed to delete account');
+    } finally {
+      setLoading(false);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -109,37 +162,152 @@ const Profile = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Profile Header */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex items-center space-x-6">
-            <div className="relative">
-              <img
-                src={user?.profilePhoto || `https://ui-avatars.com/api/?name=${user?.name}&background=4f46e5&color=fff&size=80`}
-                alt={user?.name}
-                className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
-              />
-              <label className="absolute bottom-0 right-0 bg-blue-600 rounded-full p-2 cursor-pointer hover:bg-blue-700 transition-colors">
-                <Camera className="h-4 w-4 text-white" />
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleFileChange(e, 'profilePhoto')}
-                  className="hidden"
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-6">
+              <div className="relative">
+                <img
+                  src={user?.profilePhoto || `https://ui-avatars.com/api/?name=${user?.name}&background=4f46e5&color=fff&size=80`}
+                  alt={user?.name}
+                  className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
                 />
-              </label>
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{user?.name}</h1>
-              <p className="text-gray-600">{user?.email}</p>
-              <div className="flex items-center space-x-4 mt-2">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(user?.status)}`}>
-                  {user?.status?.charAt(0).toUpperCase() + user?.status?.slice(1)}
-                </span>
-                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                  {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
-                </span>
+                <label className="absolute bottom-0 right-0 bg-blue-600 rounded-full p-2 cursor-pointer hover:bg-blue-700 transition-colors">
+                  <Camera className="h-4 w-4 text-white" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileChange(e, 'profilePhoto')}
+                    className="hidden"
+                  />
+                </label>
               </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">{user?.name}</h1>
+                <p className="text-gray-600">{user?.email}</p>
+                <div className="flex items-center space-x-4 mt-2">
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(user?.status)}`}>
+                    {user?.status?.charAt(0).toUpperCase() + user?.status?.slice(1)}
+                  </span>
+                  <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                    {user?.role?.charAt(0).toUpperCase() + user?.role?.slice(1)}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Account Actions */}
+            <div className="flex space-x-2">
+              <button
+                onClick={() => setShowPasswordForm(true)}
+                className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                <Lock className="h-4 w-4" />
+                <span>Change Password</span>
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>Delete Account</span>
+              </button>
             </div>
           </div>
         </div>
+
+        {/* Change Password Modal */}
+        {showPasswordForm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h3 className="text-lg font-semibold mb-4">Change Password</h3>
+              <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+                  <div className="relative">
+                    <input
+                      type={showPasswords.current ? 'text' : 'password'}
+                      name="currentPassword"
+                      value={passwordData.currentPassword}
+                      onChange={handlePasswordChange}
+                      required
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-10 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswords({...showPasswords, current: !showPasswords.current})}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    >
+                      {showPasswords.current ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+                  <div className="relative">
+                    <input
+                      type={showPasswords.new ? 'text' : 'password'}
+                      name="newPassword"
+                      value={passwordData.newPassword}
+                      onChange={handlePasswordChange}
+                      required
+                      minLength={6}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-10 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswords({...showPasswords, new: !showPasswords.new})}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    >
+                      {showPasswords.new ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  >
+                    {loading ? 'Changing...' : 'Change Password'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordForm(false)}
+                    className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Account Confirmation Modal */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h3 className="text-lg font-semibold text-red-600 mb-4">Delete Account</h3>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently removed.
+              </p>
+              <div className="flex space-x-3">
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={loading}
+                  className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                >
+                  {loading ? 'Deleting...' : 'Yes, Delete Account'}
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="bg-white rounded-lg shadow-sm">

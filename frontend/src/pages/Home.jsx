@@ -1,59 +1,132 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, Shield, Clock, Star, Users, Fuel, Settings, MapPin, Car, ArrowRight, CheckCircle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Search, Shield, Clock, Star, Users, Fuel, Settings, MapPin, Car, ArrowRight } from 'lucide-react';
+import { carService } from '../services/api';
 import { DEFAULT_CAR_IMAGE } from '../hooks';
+import { POPULAR_CITIES } from '../constants';
+
+// Components
+const LoadingSkeleton = () => (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    {[1, 2, 3].map((i) => (
+      <div key={i} className="bg-white rounded-xl overflow-hidden animate-pulse">
+        <div className="h-48 bg-gray-200" />
+        <div className="p-6 space-y-4">
+          <div className="h-6 bg-gray-200 rounded w-3/4" />
+          <div className="h-4 bg-gray-200 rounded w-1/2" />
+          <div className="h-10 bg-gray-200 rounded" />
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
+const CarCard = ({ car }) => (
+  <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
+    <div className="relative">
+      {car.images && car.images.length > 0 ? (
+        <img
+          src={car.images[0]}
+          alt={car.name}
+          className="w-full h-48 object-cover"
+          onError={(e) => {
+            e.target.src = DEFAULT_CAR_IMAGE;
+          }}
+        />
+      ) : (
+        <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
+          <Car className="h-16 w-16 text-gray-400" />
+        </div>
+      )}
+      <div className="absolute top-4 right-4 bg-white/90 px-3 py-1 rounded-full">
+        <div className="flex items-center space-x-1">
+          <Star className="h-4 w-4 text-yellow-500 fill-current" />
+          <span className="text-sm font-semibold">{car.rating || 'New'}</span>
+        </div>
+      </div>
+    </div>
+    
+    <div className="p-6">
+      <div className="mb-4">
+        <h3 className="text-xl font-bold text-gray-900 mb-1">{car.name}</h3>
+        <p className="text-gray-600">{car.brand}</p>
+      </div>
+      
+      <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="text-center p-2 bg-gray-50 rounded-lg">
+          <Users className="h-5 w-5 text-gray-400 mx-auto mb-1" />
+          <span className="text-xs font-medium text-gray-700">{car.seats} seats</span>
+        </div>
+        <div className="text-center p-2 bg-gray-50 rounded-lg">
+          <Fuel className="h-5 w-5 text-gray-400 mx-auto mb-1" />
+          <span className="text-xs font-medium text-gray-700 capitalize">{car.fuelType}</span>
+        </div>
+        <div className="text-center p-2 bg-gray-50 rounded-lg">
+          <Settings className="h-5 w-5 text-gray-400 mx-auto mb-1" />
+          <span className="text-xs font-medium text-gray-700 capitalize">{car.transmission}</span>
+        </div>
+      </div>
+      
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center text-gray-600">
+          <MapPin className="h-4 w-4 mr-1" />
+          <span className="text-sm">{car.pickupLocation?.city || 'N/A'}</span>
+        </div>
+        <div className="text-right">
+          <div className="text-2xl font-bold text-blue-600">₹{car.pricePerDay}</div>
+          <div className="text-xs text-gray-500">per day</div>
+        </div>
+      </div>
+      
+      <Link 
+        to={`/car/${car._id}`} 
+        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-colors text-center block flex items-center justify-center"
+      >
+        View Details
+        <ArrowRight className="h-4 w-4 ml-2" />
+      </Link>
+    </div>
+  </div>
+);
 
 const Home = () => {
   const [featuredCars, setFeaturedCars] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchData, setSearchData] = useState({
     city: '',
     startDate: '',
     endDate: ''
   });
+  const navigate = useNavigate();
 
   useEffect(() => {
-    setTimeout(() => {
-      setFeaturedCars([
-        {
-          _id: '1',
-          name: 'Swift Dzire',
-          brand: 'Maruti Suzuki',
-          fuelType: 'petrol',
-          seats: 5,
-          transmission: 'manual',
-          pricePerDay: 1200,
-          pickupLocation: { city: 'Mumbai' },
-          rating: 4.5,
-          images: [DEFAULT_CAR_IMAGE]
-        },
-        {
-          _id: '2',
-          name: 'Honda City',
-          brand: 'Honda',
-          fuelType: 'petrol',
-          seats: 5,
-          transmission: 'automatic',
-          pricePerDay: 1800,
-          pickupLocation: { city: 'Mumbai' },
-          rating: 4.8,
-          images: [DEFAULT_CAR_IMAGE]
-        },
-        {
-          _id: '3',
-          name: 'Hyundai Creta',
-          brand: 'Hyundai',
-          fuelType: 'diesel',
-          seats: 5,
-          transmission: 'automatic',
-          pricePerDay: 2500,
-          pickupLocation: { city: 'Delhi' },
-          rating: 4.7,
-          images: [DEFAULT_CAR_IMAGE]
+    const fetchFeaturedCars = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await carService.getAllCars({ limit: 6 });
+        
+        if (response.success && Array.isArray(response.cars) && response.cars.length > 0) {
+          const carsWithImages = response.cars.map(car => ({
+            ...car,
+            images: car.images && car.images.length > 0 ? car.images : [DEFAULT_CAR_IMAGE]
+          }));
+          setFeaturedCars(carsWithImages);
+        } else {
+          setError('No cars available at the moment');
+          setFeaturedCars([]);
         }
-      ]);
-      setLoading(false);
-    }, 500);
+      } catch (error) {
+        console.error('Error fetching featured cars:', error);
+        setError('Failed to load cars. Please try again later.');
+        setFeaturedCars([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeaturedCars();
   }, []);
 
   const handleSearch = () => {
@@ -61,7 +134,7 @@ const Home = () => {
     if (searchData.city) params.append('city', searchData.city);
     if (searchData.startDate) params.append('startDate', searchData.startDate);
     if (searchData.endDate) params.append('endDate', searchData.endDate);
-    window.location.href = `/search?${params.toString()}`;
+    navigate(`/search?${params.toString()}`);
   };
 
   const popularCities = [
@@ -233,96 +306,44 @@ const Home = () => {
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="bg-white rounded-xl overflow-hidden animate-pulse">
-                  <div className="h-48 bg-gray-200" />
-                  <div className="p-6 space-y-4">
-                    <div className="h-6 bg-gray-200 rounded w-3/4" />
-                    <div className="h-4 bg-gray-200 rounded w-1/2" />
-                    <div className="h-10 bg-gray-200 rounded" />
-                  </div>
-                </div>
-              ))}
+            <LoadingSkeleton />
+          ) : error ? (
+            <div className="text-center py-12">
+              <Car className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">{error}</h3>
+              <p className="text-gray-600 mb-6">Check back later for available cars</p>
+              <Link 
+                to="/search" 
+                className="inline-flex items-center bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+              >
+                <Search className="h-5 w-5 mr-2" />
+                Search Cars
+              </Link>
             </div>
+          ) : featuredCars.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {featuredCars.map((car) => (
+                  <CarCard key={car._id} car={car} />
+                ))}
+              </div>
+              <div className="text-center mt-12">
+                <Link 
+                  to="/search" 
+                  className="inline-flex items-center bg-gray-900 text-white px-8 py-4 rounded-lg font-semibold hover:bg-gray-800 transition-colors"
+                >
+                  <Search className="h-5 w-5 mr-2" />
+                  Explore All Cars
+                </Link>
+              </div>
+            </>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredCars.map((car) => (
-                <div key={car._id} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden">
-                  <div className="relative">
-                    {car.images && car.images.length > 0 ? (
-                      <img
-                        src={car.images[0]}
-                        alt={car.name}
-                        className="w-full h-48 object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-                        <Car className="h-16 w-16 text-gray-400" />
-                      </div>
-                    )}
-                    <div className="absolute top-4 right-4 bg-white/90 px-3 py-1 rounded-full">
-                      <div className="flex items-center space-x-1">
-                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                        <span className="text-sm font-semibold">{car.rating || 'New'}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="p-6">
-                    <div className="mb-4">
-                      <h3 className="text-xl font-bold text-gray-900 mb-1">{car.name}</h3>
-                      <p className="text-gray-600">{car.brand}</p>
-                    </div>
-                    
-                    <div className="grid grid-cols-3 gap-4 mb-4">
-                      <div className="text-center p-2 bg-gray-50 rounded-lg">
-                        <Users className="h-5 w-5 text-gray-400 mx-auto mb-1" />
-                        <span className="text-xs font-medium text-gray-700">{car.seats} seats</span>
-                      </div>
-                      <div className="text-center p-2 bg-gray-50 rounded-lg">
-                        <Fuel className="h-5 w-5 text-gray-400 mx-auto mb-1" />
-                        <span className="text-xs font-medium text-gray-700 capitalize">{car.fuelType}</span>
-                      </div>
-                      <div className="text-center p-2 bg-gray-50 rounded-lg">
-                        <Settings className="h-5 w-5 text-gray-400 mx-auto mb-1" />
-                        <span className="text-xs font-medium text-gray-700 capitalize">{car.transmission}</span>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center text-gray-600">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        <span className="text-sm">{car.pickupLocation.city}</span>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-blue-600">₹{car.pricePerDay}</div>
-                        <div className="text-xs text-gray-500">per day</div>
-                      </div>
-                    </div>
-                    
-                    <Link 
-                      to={`/car/${car._id}`} 
-                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-colors text-center block flex items-center justify-center"
-                    >
-                      View Details
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </Link>
-                  </div>
-                </div>
-              ))}
+            <div className="text-center py-12">
+              <Car className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">No Cars Available</h3>
+              <p className="text-gray-600">Be the first to list your car!</p>
             </div>
           )}
-
-          <div className="text-center mt-12">
-            <Link 
-              to="/search" 
-              className="inline-flex items-center bg-gray-900 text-white px-8 py-4 rounded-lg font-semibold hover:bg-gray-800 transition-colors"
-            >
-              <Search className="h-5 w-5 mr-2" />
-              Explore All Cars
-            </Link>
-          </div>
         </div>
       </section>
 

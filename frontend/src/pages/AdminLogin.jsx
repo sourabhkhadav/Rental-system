@@ -34,21 +34,12 @@ const AdminLogin = () => {
       
       if (result.success) {
         // Check if user is admin after successful login
-        const response = await fetch('/api/auth/me', {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
-        });
-        
-        if (response.ok) {
-          const userData = await response.json();
-          if (userData.user.role === 'admin') {
-            toast.success('Admin login successful!');
-            navigate('/admin');
-          } else {
-            setError('Access denied. Admin credentials required.');
-            localStorage.removeItem('token');
-          }
+        if (result.user.role === 'admin') {
+          toast.success('Admin login successful!');
+          navigate('/admin/dashboard');
+        } else {
+          setError('Access denied. Admin credentials required.');
+          // Don't remove token here, let the auth context handle it
         }
       } else {
         setError(result.message || 'Invalid admin credentials');
