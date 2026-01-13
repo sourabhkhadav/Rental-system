@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Search, Shield, Clock, Star, Users, Fuel, Settings, MapPin, Car, ArrowRight } from 'lucide-react';
 import { carService } from '../services/api';
 import { DEFAULT_CAR_IMAGE } from '../hooks';
-import { POPULAR_CITIES } from '../constants';
+import { POPULAR_CITIES, DUMMY_CARS } from '../constants';
+import CityCard from '../components/common/CityCard';
 
 // Components
 const LoadingSkeleton = () => (
@@ -114,13 +115,14 @@ const Home = () => {
           }));
           setFeaturedCars(carsWithImages);
         } else {
-          setError('No cars available at the moment');
-          setFeaturedCars([]);
+          // Show dummy cars when no real cars available
+          setFeaturedCars(DUMMY_CARS);
         }
       } catch (error) {
         console.error('Error fetching featured cars:', error);
-        setError('Failed to load cars. Please try again later.');
-        setFeaturedCars([]);
+        // Show dummy cars on error
+        setFeaturedCars(DUMMY_CARS);
+        setError(null);
       } finally {
         setLoading(false);
       }
@@ -137,14 +139,9 @@ const Home = () => {
     navigate(`/search?${params.toString()}`);
   };
 
-  const popularCities = [
-    { name: 'Mumbai', icon: '🏙️' },
-    { name: 'Delhi', icon: '🏛️' },
-    { name: 'Bangalore', icon: '🌆' },
-    { name: 'Chennai', icon: '🏖️' },
-    { name: 'Hyderabad', icon: '🏰' },
-    { name: 'Pune', icon: '🎓' }
-  ];
+  const handleCityClick = (city) => {
+    setSearchData({...searchData, city});
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -278,16 +275,13 @@ const Home = () => {
             <p className="text-lg text-gray-600">Choose from our top destinations</p>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {popularCities.map((city) => (
-              <button
-                key={city.name}
-                onClick={() => setSearchData({...searchData, city: city.name})}
-                className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow text-center border hover:border-blue-200"
-              >
-                <div className="text-3xl mb-3">{city.icon}</div>
-                <div className="font-semibold text-gray-900">{city.name}</div>
-              </button>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
+            {POPULAR_CITIES.slice(0, 6).map((city) => (
+              <CityCard
+                key={city}
+                city={city}
+                onClick={handleCityClick}
+              />
             ))}
           </div>
         </div>
@@ -327,15 +321,17 @@ const Home = () => {
                   <CarCard key={car._id} car={car} />
                 ))}
               </div>
-              <div className="text-center mt-12">
-                <Link 
-                  to="/search" 
-                  className="inline-flex items-center bg-gray-900 text-white px-8 py-4 rounded-lg font-semibold hover:bg-gray-800 transition-colors"
-                >
-                  <Search className="h-5 w-5 mr-2" />
-                  Explore All Cars
-                </Link>
-              </div>
+              {!featuredCars[0]?.isDummy && (
+                <div className="text-center mt-12">
+                  <Link 
+                    to="/search" 
+                    className="inline-flex items-center bg-gray-900 text-white px-8 py-4 rounded-lg font-semibold hover:bg-gray-800 transition-colors"
+                  >
+                    <Search className="h-5 w-5 mr-2" />
+                    Explore All Cars
+                  </Link>
+                </div>
+              )}
             </>
           ) : (
             <div className="text-center py-12">

@@ -3,6 +3,7 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { Search, MapPin, Users, Fuel, Settings, Calendar, Car, Star, Filter, SlidersHorizontal } from 'lucide-react';
 import { DEFAULT_CAR_IMAGE } from '../hooks';
 import { carService } from '../services/api';
+import { DUMMY_CARS } from '../constants';
 
 const CarSearch = () => {
   const [searchParams] = useSearchParams();
@@ -29,7 +30,7 @@ const CarSearch = () => {
     try {
       const response = await carService.searchCars(filters);
       
-      if (response.success && Array.isArray(response.cars)) {
+      if (response.success && Array.isArray(response.cars) && response.cars.length > 0) {
         // Ensure each car has a default image if none provided
         const carsWithImages = response.cars.map(car => ({
           ...car,
@@ -37,11 +38,13 @@ const CarSearch = () => {
         }));
         setCars(carsWithImages);
       } else {
-        setCars([]);
+        // Show dummy cars when no real cars found
+        setCars(DUMMY_CARS);
       }
     } catch (error) {
       console.error('Error fetching cars:', error);
-      setCars([]);
+      // Show dummy cars on error
+      setCars(DUMMY_CARS);
     } finally {
       setLoading(false);
     }

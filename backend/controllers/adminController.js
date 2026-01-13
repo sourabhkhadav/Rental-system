@@ -5,65 +5,44 @@ const Booking = require('../models/Booking');
 // Dashboard Stats
 exports.getDashboardStats = async (req, res) => {
   try {
+    console.log('Getting dashboard stats for admin:', req.user.email);
+    
     const [
       totalUsers,
       totalOwners,
       totalCars,
       totalBookings,
       pendingUsers,
-      pendingOwners,
       pendingCars,
-      completedBookings,
-      activeBookings,
-      totalEarnings,
-      monthlyEarnings
+      completedBookings
     ] = await Promise.all([
       User.countDocuments({ role: 'user' }),
       User.countDocuments({ role: 'owner' }),
       Car.countDocuments(),
       Booking.countDocuments(),
       User.countDocuments({ status: 'pending' }),
-      User.countDocuments({ role: 'owner', status: 'pending' }),
       Car.countDocuments({ status: 'pending' }),
-      Booking.countDocuments({ status: 'completed' }),
-      Booking.countDocuments({ status: 'active' }),
-      Booking.aggregate([
-        { $match: { status: 'completed' } },
-        { $group: { _id: null, total: { $sum: '$platformFee' } } }
-      ]),
-      Booking.aggregate([
-        { 
-          $match: { 
-            status: 'completed',
-            createdAt: { 
-              $gte: (() => {
-                const now = new Date();
-                return new Date(now.getFullYear(), now.getMonth(), 1);
-              })()
-            }
-          } 
-        },
-        { $group: { _id: null, total: { $sum: '$platformFee' } } }
-      ])
+      Booking.countDocuments({ status: 'completed' })
     ]);
+
+    const stats = {
+      totalUsers,
+      totalOwners,
+      totalCars,
+      totalBookings,
+      pendingApprovals: {
+        users: pendingUsers,
+        cars: pendingCars
+      },
+      completedBookings,
+      totalEarnings: 0
+    };
+
+    console.log('Dashboard stats:', stats);
 
     res.json({
       success: true,
-      stats: {
-        totalUsers,
-        totalOwners,
-        totalCars,
-        totalBookings,
-        pendingApprovals: {
-          users: pendingUsers,
-          owners: pendingOwners,
-          cars: pendingCars
-        },
-        completedBookings,
-        activeBookings,
-        totalEarnings: totalEarnings[0]?.total || 0,
-        monthlyEarnings: monthlyEarnings[0]?.total || 0
-      }
+      stats
     });
   } catch (error) {
     console.error('Dashboard stats error:', error);
@@ -197,30 +176,21 @@ exports.blockUser = async (req, res) => {
 // Get All Users
 exports.getAllUsers = async (req, res) => {
   try {
-    const { page = 1, limit = 10, role, status } = req.query;
+    console.log('Getting all users for admin:', req.user.email);
     
-    let query = {};
-    if (role) query.role = role;
-    if (status) query.status = status;
-
-    const users = await User.find(query)
+    const users = await User.find({})
       .select('-password')
       .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+      .limit(100);
 
-    const total = await User.countDocuments(query);
+    console.log('Found users:', users.length);
 
     res.json({
       success: true,
-      users,
-      pagination: {
-        page: Number(page),
-        pages: Math.ceil(total / limit),
-        total
-      }
+      users
     });
   } catch (error) {
+    console.error('Get users error:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -228,29 +198,21 @@ exports.getAllUsers = async (req, res) => {
 // Get All Cars
 exports.getAllCars = async (req, res) => {
   try {
-    const { page = 1, limit = 10, status } = req.query;
+    console.log('Getting all cars for admin:', req.user.email);
     
-    let query = {};
-    if (status) query.status = status;
-
-    const cars = await Car.find(query)
+    const cars = await Car.find({})
       .populate('owner', 'name email phone')
       .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+      .limit(100);
 
-    const total = await Car.countDocuments(query);
+    console.log('Found cars:', cars.length);
 
     res.json({
       success: true,
-      cars,
-      pagination: {
-        page: Number(page),
-        pages: Math.ceil(total / limit),
-        total
-      }
+      cars
     });
   } catch (error) {
+    console.error('Get cars error:', error);
     res.status(500).json({ message: error.message });
   }
 };
@@ -258,31 +220,23 @@ exports.getAllCars = async (req, res) => {
 // Get All Bookings
 exports.getAllBookings = async (req, res) => {
   try {
-    const { page = 1, limit = 10, status } = req.query;
+    console.log('Getting all bookings for admin:', req.user.email);
     
-    let query = {};
-    if (status) query.status = status;
-
-    const bookings = await Booking.find(query)
+    const bookings = await Booking.find({})
       .populate('user', 'name email phone')
       .populate('owner', 'name email phone')
       .populate('car', 'name brand numberPlate')
       .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit);
+      .limit(100);
 
-    const total = await Booking.countDocuments(query);
+    console.log('Found bookings:', bookings.length);
 
     res.json({
       success: true,
-      bookings,
-      pagination: {
-        page: Number(page),
-        pages: Math.ceil(total / limit),
-        total
-      }
+      bookings
     });
   } catch (error) {
+    console.error('Get bookings error:', error);
     res.status(500).json({ message: error.message });
   }
 };

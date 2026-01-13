@@ -4,28 +4,27 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 // Components
-import Header from './components/Header.jsx';
-import Footer from './components/Footer.jsx';
+import Header from './components/Header';
+import Footer from './components/Footer';
 
-// Pages
-import Home from './pages/Home.jsx';
-import Login from './pages/Login.jsx';
-import Register from './pages/Register.jsx';
-import Dashboard from './pages/Dashboard.jsx';
-import CarSearch from './pages/CarSearch.jsx';
-import CarDetails from './pages/CarDetails.jsx';
-import AdminDashboard from './pages/AdminDashboard.jsx';
-import AdminLogin from './pages/AdminLogin.jsx';
-import AddCar from './pages/AddCar.jsx';
-import Profile from './pages/Profile.jsx';
-import MyCars from './pages/MyCars.jsx';
-import Bookings from './pages/Bookings.jsx';
-import UserHome from './pages/UserHome.jsx';
-import UserDashboard from './pages/UserDashboard.jsx';
-import UserBookings from './pages/UserBookings.jsx';
-import Earnings from './pages/Earnings.jsx';
-import Reviews from './pages/Reviews.jsx';
+import Home from './pages/Home';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import CarSearch from './pages/CarSearch';
+import CarDetails from './pages/CarDetails';
+import AdminDashboard from './pages/AdminDashboard';
+import AddCar from './pages/AddCar';
+import Profile from './pages/Profile';
+import MyCars from './pages/MyCars';
+import Bookings from './pages/Bookings';
+import UserHome from './pages/UserHome';
+import UserDashboard from './pages/UserDashboard';
+import UserBookings from './pages/UserBookings';
+import Earnings from './pages/Earnings';
+import Reviews from './pages/Reviews';
 
+// Protected Route Component
 const ProtectedRoute = ({ children, requiredRole }) => {
   const { isAuthenticated, user, loading } = useAuth();
 
@@ -52,75 +51,113 @@ function AppContent() {
       <Header />
       <main className="flex-1">
         <Routes>
-          <Route path="/" element={
-            isAuthenticated && user?.role === 'user' ? <UserHome /> : 
-            isAuthenticated && user?.role === 'admin' ? <Navigate to="/admin/dashboard" /> :
-            <Home />
-          } />
-          <Route path="/search" element={<CarSearch />} />
-          <Route path="/car/:id" element={<CarDetails />} />
-          
-          <Route path="/login" element={!isAuthenticated ? <Login /> : 
-            user?.role === 'admin' ? <Navigate to="/admin/dashboard" /> : <Navigate to="/" />} />
-          <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
-          
-          <Route path="/admin/login" element={!isAuthenticated ? <AdminLogin /> : 
-            user?.role === 'admin' ? <Navigate to="/admin/dashboard" /> : <Navigate to="/" />} />
-          <Route path="/admin/dashboard" element={
+        {/* Home Route - Shows UserHome for logged-in users, Home for guests */}
+        <Route path="/" element={
+          isAuthenticated && user?.role === 'user' ? <UserHome /> : 
+          isAuthenticated && user?.role === 'admin' ? <Navigate to="/admin/dashboard" /> :
+          <Home />
+        } />
+        <Route path="/search" element={<CarSearch />} />
+        <Route path="/car/:id" element={<CarDetails />} />
+        
+        {/* Auth Routes */}
+        <Route 
+          path="/login" 
+          element={!isAuthenticated ? <Login /> : 
+            user?.role === 'admin' ? <Navigate to="/admin/dashboard" /> : <Navigate to="/" />} 
+        />
+        <Route 
+          path="/register" 
+          element={!isAuthenticated ? <Register /> : <Navigate to="/" />} 
+        />
+        <Route 
+          path="/admin/dashboard" 
+          element={
             <ProtectedRoute requiredRole="admin">
               <AdminDashboard />
             </ProtectedRoute>
-          } />
-          <Route path="/admin" element={<Navigate to="/admin/dashboard" />} />
-          
-          <Route path="/dashboard" element={
+          } 
+        />
+        <Route 
+          path="/admin" 
+          element={<Navigate to="/admin/dashboard" />} 
+        />
+        
+        {/* Protected Routes */}
+        <Route 
+          path="/dashboard" 
+          element={
             <ProtectedRoute>
               {user?.role === 'admin' ? <AdminDashboard /> :
                user?.role === 'user' ? <UserDashboard /> : <Dashboard />}
             </ProtectedRoute>
-          } />
-          
-          <Route path="/add-car" element={
+          } 
+        />
+        
+        <Route 
+          path="/add-car" 
+          element={
             <ProtectedRoute requiredRole="owner">
               <AddCar />
             </ProtectedRoute>
-          } />
-          
-          <Route path="/profile" element={
+          } 
+        />
+        
+        <Route 
+          path="/profile" 
+          element={
             <ProtectedRoute>
               <Profile />
             </ProtectedRoute>
-          } />
-          
-          <Route path="/my-bookings" element={
+          } 
+        />
+        
+        <Route 
+          path="/my-bookings" 
+          element={
             <ProtectedRoute>
               {user?.role === 'user' ? <UserBookings /> : <Navigate to="/dashboard" />}
             </ProtectedRoute>
-          } />
-          
-          <Route path="/my-cars" element={
+          } 
+        />
+        
+        <Route 
+          path="/my-cars" 
+          element={
             <ProtectedRoute requiredRole="owner">
               <MyCars />
             </ProtectedRoute>
-          } />
-          
-          <Route path="/bookings" element={
+          } 
+        />
+        
+        <Route 
+          path="/bookings" 
+          element={
             <ProtectedRoute requiredRole="owner">
               <Bookings />
             </ProtectedRoute>
-          } />
-          
-          <Route path="/earnings" element={
+          } 
+        />
+        
+        <Route 
+          path="/earnings" 
+          element={
             <ProtectedRoute requiredRole="owner">
               <Earnings />
             </ProtectedRoute>
-          } />
-          
-          <Route path="/reviews" element={
+          } 
+        />
+        
+        <Route 
+          path="/reviews" 
+          element={
             <ProtectedRoute requiredRole="owner">
               <Reviews />
             </ProtectedRoute>
-          } />
+          } 
+        />
+        
+
         </Routes>
       </main>
       <Footer />

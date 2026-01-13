@@ -2,15 +2,16 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, MapPin, Calendar, Filter, TrendingUp, Clock, Car } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useCars } from '../hooks';
+import { useCarsWithDummy } from '../hooks';
 import { CarCard, LoadingSpinner, EmptyState, Button, Input } from '../components/UI';
 import { POPULAR_CITIES, ROUTES } from '../constants';
 import { buildSearchParams } from '../utils';
+import CityCard from '../components/common/CityCard';
 
 const UserHome = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { cars, loading } = useCars({ limit: 12 });
+  const { cars, loading } = useCarsWithDummy({ limit: 12 });
   const [searchQuery, setSearchQuery] = useState({
     city: '',
     startDate: '',
@@ -93,14 +94,12 @@ const UserHome = () => {
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Popular Cities</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3 md:gap-4">
             {POPULAR_CITIES.map((city) => (
-              <button
+              <CityCard
                 key={city}
-                onClick={() => handleCityClick(city)}
-                className="p-3 md:p-4 bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-blue-300 transition-all text-center group"
-              >
-                <MapPin className="h-5 w-5 md:h-6 md:w-6 text-blue-600 mx-auto mb-1 md:mb-2 group-hover:scale-110 transition-transform" />
-                <span className="font-medium text-gray-900 text-sm md:text-base">{city}</span>
-              </button>
+                city={city}
+                onClick={handleCityClick}
+                className="p-3 md:p-4"
+              />
             ))}
           </div>
         </section>

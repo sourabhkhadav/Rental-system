@@ -18,7 +18,7 @@ const registerValidation = [
   body('name').trim().isLength({ min: 2 }).withMessage('Name must be at least 2 characters'),
   body('email').isEmail().withMessage('Please provide a valid email'),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-  body('phone').isMobilePhone('en-IN').withMessage('Please provide a valid phone number'),
+  body('phone').isLength({ min: 10 }).withMessage('Please provide a valid phone number'),
   body('role').optional().isIn(['user', 'owner']).withMessage('Invalid role')
 ];
 

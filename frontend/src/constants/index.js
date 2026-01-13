@@ -1,3 +1,5 @@
+import { DEFAULT_CAR_IMAGE } from '../hooks';
+
 // API Endpoints
 export const API_ENDPOINTS = {
   AUTH: {
@@ -63,6 +65,49 @@ export const CAR_STATUS = {
 // Popular Cities
 export const POPULAR_CITIES = [
   'Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Hyderabad', 'Pune', 'Kolkata', 'Ahmedabad'
+];
+
+// Dummy Cars for display when no real cars are available
+export const DUMMY_CARS = [
+  {
+    _id: 'dummy-1',
+    name: 'Maruti Swift',
+    brand: 'Maruti Suzuki',
+    pricePerDay: 1200,
+    seats: 5,
+    fuelType: 'petrol',
+    transmission: 'manual',
+    rating: 4.5,
+    images: ['https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400&h=240&fit=crop'],
+    pickupLocation: { city: 'Mumbai' },
+    isDummy: true
+  },
+  {
+    _id: 'dummy-2', 
+    name: 'Hyundai Creta',
+    brand: 'Hyundai',
+    pricePerDay: 2500,
+    seats: 5,
+    fuelType: 'diesel',
+    transmission: 'automatic',
+    rating: 4.7,
+    images: ['https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=400&h=240&fit=crop'],
+    pickupLocation: { city: 'Delhi' },
+    isDummy: true
+  },
+  {
+    _id: 'dummy-3',
+    name: 'Honda City',
+    brand: 'Honda',
+    pricePerDay: 1800,
+    seats: 5,
+    fuelType: 'petrol',
+    transmission: 'automatic', 
+    rating: 4.6,
+    images: ['https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400&h=240&fit=crop'],
+    pickupLocation: { city: 'Bangalore' },
+    isDummy: true
+  }
 ];
 
 // Car Specifications

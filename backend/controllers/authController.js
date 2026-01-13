@@ -32,7 +32,7 @@ exports.register = async (req, res) => {
       password,
       phone,
       role: role || 'user',
-      status: role === 'owner' ? 'pending' : 'approved'
+      status: 'approved' // All users are approved by default now
     });
 
     const token = generateToken(user._id);
@@ -59,23 +59,22 @@ exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log('Login attempt:', email);
+
     // Check if user exists
     const user = await User.findOne({ email });
     if (!user) {
+      console.log('User not found:', email);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
+
+    console.log('User found:', user.email, 'Role:', user.role, 'Status:', user.status);
 
     // Check password
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
-      user.loginAttempts += 1;
-      await user.save();
+      console.log('Invalid password for:', email);
       return res.status(401).json({ message: 'Invalid credentials' });
-    }
-
-    // Check if user is blocked
-    if (user.status === 'blocked') {
-      return res.status(403).json({ message: 'Account blocked. Contact admin.' });
     }
 
     // Update last login
@@ -84,6 +83,8 @@ exports.login = async (req, res) => {
     await user.save();
 
     const token = generateToken(user._id);
+
+    console.log('Login successful for:', email);
 
     res.json({
       success: true,
@@ -98,6 +99,7 @@ exports.login = async (req, res) => {
       }
     });
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).json({ message: error.message });
   }
 };

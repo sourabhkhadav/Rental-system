@@ -25,7 +25,14 @@ A full-stack car rental application built with React.js and Node.js.
 3. **Access the Application**
    - Frontend: http://localhost:3000
    - Backend: http://localhost:5005
-   - Admin Login: admin@gmail.com / admin123
+   - **Admin Login: admin@gmail.com / admin123**
+
+## Recent Login Fixes
+
+✅ **Unified Login System** - All users now use the same login page at `/login`
+✅ **Admin Auto-Creation** - System automatically creates admin@gmail.com
+✅ **Instant User Approval** - New users can login immediately after registration
+✅ **Smart Routing** - Admin users automatically redirect to admin dashboard
 
 ## User Roles
 

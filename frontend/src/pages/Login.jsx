@@ -26,25 +26,29 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
 
-    // Test connection first
-    try {
-      await fetch('http://localhost:5005/api/health');
-    } catch (error) {
-      toast.error('Backend server not running. Please start the backend.');
-      setLoading(false);
-      return;
-    }
+    console.log('Attempting login with:', formData.email);
 
     try {
       const result = await login(formData.email, formData.password);
+      console.log('Login result:', result);
       
       if (result.success) {
         toast.success('Login successful!');
-        navigate(result.user.role === 'user' ? '/' : '/dashboard');
+        
+        // Route based on user role
+        if (result.user.role === 'admin') {
+          navigate('/admin/dashboard');
+        } else if (result.user.role === 'owner') {
+          navigate('/dashboard');
+        } else {
+          navigate('/');
+        }
       } else {
+        console.log('Login failed:', result.message);
         toast.error(result.message || 'Login failed');
       }
     } catch (error) {
+      console.error('Login error:', error);
       toast.error('Login failed. Please try again.');
     } finally {
       setLoading(false);
@@ -133,7 +137,7 @@ const Login = () => {
             </button>
           </form>
 
-          <div className="mt-6 text-center space-y-2">
+          <div className="mt-6 text-center">
             <p className="text-gray-600">
               Don't have an account?{' '}
               <Link 
@@ -141,14 +145,6 @@ const Login = () => {
                 className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"
               >
                 Sign up here
-              </Link>
-            </p>
-            <p className="text-gray-600">
-              <Link 
-                to="/admin/login" 
-                className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"
-              >
-                Admin Login
               </Link>
             </p>
           </div>

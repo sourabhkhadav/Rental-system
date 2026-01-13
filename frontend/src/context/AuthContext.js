@@ -4,7 +4,7 @@ import axios from 'axios';
 const AuthContext = createContext();
 
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5005',
+  baseURL: 'http://localhost:5005',
   headers: { 'Content-Type': 'application/json' }
 });
 
@@ -106,8 +106,9 @@ export const AuthProvider = ({ children }) => {
       if (res.data.success) {
         dispatch({ type: 'LOGIN_SUCCESS', payload: res.data });
         return { success: true, user: res.data.user };
+      } else {
+        return { success: false, message: res.data.message };
       }
-      return { success: false, message: res.data.message };
     } catch (error) {
       return { 
         success: false, 
@@ -120,13 +121,11 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await api.post('/api/auth/register', userData);
       if (res.data.success) {
-        if (userData.role === 'owner') {
-          return { success: true, message: res.data.message, requiresApproval: true };
-        }
         dispatch({ type: 'LOGIN_SUCCESS', payload: res.data });
         return { success: true, user: res.data.user, message: res.data.message };
+      } else {
+        return { success: false, message: res.data.message };
       }
-      return { success: false, message: res.data.message };
     } catch (error) {
       return { 
         success: false, 
@@ -141,12 +140,46 @@ export const AuthProvider = ({ children }) => {
       if (res.data.success) {
         dispatch({ type: 'UPDATE_USER', payload: res.data.user });
         return { success: true, message: res.data.message };
+      } else {
+        return { success: false, message: res.data.message };
       }
-      return { success: false, message: res.data.message };
     } catch (error) {
       return { 
         success: false, 
         message: error.response?.data?.message || 'Profile update failed' 
+      };
+    }
+  };
+
+  const changePassword = async (passwordData) => {
+    try {
+      const res = await api.put('/api/auth/change-password', passwordData);
+      if (res.data.success) {
+        return { success: true, message: res.data.message };
+      } else {
+        return { success: false, message: res.data.message };
+      }
+    } catch (error) {
+      return { 
+        success: false, 
+        message: error.response?.data?.message || 'Password change failed' 
+      };
+    }
+  };
+
+  const deleteAccount = async () => {
+    try {
+      const res = await api.delete('/api/auth/account');
+      if (res.data.success) {
+        dispatch({ type: 'LOGOUT' });
+        return { success: true, message: res.data.message };
+      } else {
+        return { success: false, message: res.data.message };
+      }
+    } catch (error) {
+      return { 
+        success: false, 
+        message: error.response?.data?.message || 'Account deletion failed' 
       };
     }
   };
@@ -162,7 +195,9 @@ export const AuthProvider = ({ children }) => {
       register,
       logout,
       loadUser,
-      updateProfile
+      updateProfile,
+      changePassword,
+      deleteAccount
     }}>
       {children}
     </AuthContext.Provider>
