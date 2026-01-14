@@ -31,7 +31,7 @@ const Login = () => {
       
       if (result.success) {
         toast.success('Login successful!');
-        navigate('/dashboard');
+        navigate('/');
       } else {
         toast.error(result.message);
       }

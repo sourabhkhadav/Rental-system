@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import { Car, Plus, Edit, Eye, Trash2, Star, ArrowLeft } from 'lucide-react';
 
 const MyCars = () => {
@@ -17,14 +17,31 @@ const MyCars = () => {
     try {
       setError(null);
       console.log('Fetching cars...');
-      const response = await axios.get('/api/cars/my-cars');
+      
+      // Check if user is logged in
+      const token = localStorage.getItem('token');
+      console.log('Token exists:', !!token);
+      
+      if (!token) {
+        setError('Please login first');
+        setLoading(false);
+        return;
+      }
+      
+      const response = await api.get('/api/cars/my-cars');
       console.log('Cars response:', response.data);
       setCars(response.data.cars || []);
     } catch (error) {
       console.error('Error fetching cars:', error);
       console.error('Error response:', error.response?.data);
+      console.error('Error status:', error.response?.status);
       setCars([]);
-      setError(error.response?.data?.message || 'Failed to fetch cars');
+      
+      if (error.response?.status === 401) {
+        setError('Please login again. Your session has expired.');
+      } else {
+        setError(error.response?.data?.message || 'Failed to fetch cars');
+      }
     } finally {
       setLoading(false);
     }
@@ -44,7 +61,7 @@ const MyCars = () => {
     if (window.confirm('Are you sure you want to delete this car?')) {
       try {
         console.log('Deleting car:', carId);
-        const response = await axios.delete(`/api/cars/${carId}`);
+        const response = await api.delete(`/api/cars/${carId}`);
         console.log('Delete response:', response.data);
         
         if (response.data.success) {
@@ -105,7 +122,18 @@ const MyCars = () => {
           </Link>
         </div>
 
-        {cars.length === 0 ? (
+        {error ? (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-8 text-center">
+            <div className="text-red-600 text-lg font-semibold mb-2">Error</div>
+            <p className="text-red-700 mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            >
+              Retry
+            </button>
+          </div>
+        ) : cars.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-lg p-12 text-center">
             <Car className="h-16 w-16 text-gray-400 mx-auto mb-6" />
             <h3 className="text-xl font-semibold text-gray-900 mb-3">No cars listed yet</h3>

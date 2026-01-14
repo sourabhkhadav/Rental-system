@@ -28,7 +28,7 @@ const CarSearch = () => {
         if (filters[key]) params.append(key, filters[key]);
       });
       
-      const response = await axios.get('/api/cars');
+      const response = await axios.get('http://localhost:5000/api/cars');
       setCars(response.data.cars);
     } catch (error) {
       console.error('Error searching cars:', error);

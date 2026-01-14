@@ -17,12 +17,6 @@ exports.authenticate = async (req, res, next) => {
       return res.status(401).json({ message: 'Invalid token.' });
     }
 
-    // Auto-approve users for development (remove in production)
-    if (user.status !== 'approved') {
-      user.status = 'approved';
-      await user.save();
-    }
-
     req.user = user;
     next();
   } catch (error) {

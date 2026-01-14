@@ -13,16 +13,36 @@ const router = express.Router();
 
 // Validation rules
 const registerValidation = [
-  body('name').trim().isLength({ min: 2 }).withMessage('Name must be at least 2 characters'),
-  body('email').isEmail().withMessage('Please provide a valid email'),
-  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-  body('phone').isMobilePhone('en-IN').withMessage('Please provide a valid phone number'),
-  body('role').optional().isIn(['user', 'owner']).withMessage('Invalid role')
+  body('name')
+    .trim()
+    .isLength({ min: 2, max: 50 })
+    .withMessage('Name must be between 2-50 characters')
+    .matches(/^[a-zA-Z\s]+$/)
+    .withMessage('Name can only contain letters and spaces'),
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email'),
+  body('password')
+    .isLength({ min: 6 })
+    .withMessage('Password must be at least 6 characters'),
+  body('phone')
+    .isMobilePhone('en-IN')
+    .withMessage('Please provide a valid Indian phone number'),
+  body('role')
+    .optional()
+    .isIn(['user', 'owner'])
+    .withMessage('Role must be user or owner')
 ];
 
 const loginValidation = [
-  body('email').isEmail().withMessage('Please provide a valid email'),
-  body('password').notEmpty().withMessage('Password is required')
+  body('email')
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Please provide a valid email'),
+  body('password')
+    .notEmpty()
+    .withMessage('Password is required')
 ];
 
 // Routes

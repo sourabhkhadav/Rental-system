@@ -2,7 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import axios from 'axios';
 
 // Configure axios base URL
-axios.defaults.baseURL = 'http://localhost:5005';
+axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 axios.defaults.timeout = 600000; // 10 minutes for file uploads
 
 console.log('API Base URL:', axios.defaults.baseURL);

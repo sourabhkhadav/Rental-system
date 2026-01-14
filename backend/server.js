@@ -49,8 +49,47 @@ app.get('/api/health', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
+  console.error('Error:', err);
+  
+  // Mongoose validation error
+  if (err.name === 'ValidationError') {
+    const errors = Object.values(err.errors).map(e => e.message);
+    return res.status(400).json({ 
+      success: false,
+      message: 'Validation Error',
+      errors 
+    });
+  }
+  
+  // Mongoose duplicate key error
+  if (err.code === 11000) {
+    const field = Object.keys(err.keyValue)[0];
+    return res.status(400).json({ 
+      success: false,
+      message: `${field} already exists` 
+    });
+  }
+  
+  // JWT errors
+  if (err.name === 'JsonWebTokenError') {
+    return res.status(401).json({ 
+      success: false,
+      message: 'Invalid token' 
+    });
+  }
+  
+  if (err.name === 'TokenExpiredError') {
+    return res.status(401).json({ 
+      success: false,
+      message: 'Token expired' 
+    });
+  }
+  
+  // Default error
+  res.status(err.status || 500).json({ 
+    success: false,
+    message: err.message || 'Internal server error' 
+  });
 });
 
 // 404 handler
@@ -63,24 +102,43 @@ const connectDB = async () => {
   try {
     const conn = await mongoose.connect(MONGODB_URI, {
       useNewUrlParser: true,
-      useUnifiedTopology: true,
-      maxPoolSize: 10,
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
+      useUnifiedTopology: true
     });
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    
+    // Handle connection events
+    mongoose.connection.on('error', (err) => {
+      console.error('❌ MongoDB connection error:', err);
+    });
+    
+    mongoose.connection.on('disconnected', () => {
+      console.log('⚠️ MongoDB disconnected');
+    });
+    
   } catch (error) {
-    console.error('MongoDB connection error:', error);
-    // Retry connection after 5 seconds
+    console.error('❌ MongoDB connection failed:', error.message);
+    console.log('🔄 Retrying connection in 5 seconds...');
     setTimeout(connectDB, 5000);
   }
 };
 
 connectDB();
 
-const server = app.listen(PORT, () => {
-  console.log(`Server running in ${NODE_ENV} mode on port ${PORT}`);
-  console.log(`CORS enabled for: ${JSON.stringify(corsOptions.origin)}`);
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server running in ${NODE_ENV} mode on port ${PORT}`);
+  console.log(`🌐 CORS enabled for: ${JSON.stringify(corsOptions.origin)}`);
+  console.log(`📡 Server accessible at: http://localhost:${PORT}`);
+});
+
+// Handle server errors
+server.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${PORT} is already in use`);
+    console.log('💡 Try using a different port or kill the process using this port');
+    process.exit(1);
+  } else {
+    console.error('❌ Server error:', error);
+  }
 });
 
 // Graceful shutdown

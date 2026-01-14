@@ -7,28 +7,64 @@ exports.createBooking = async (req, res) => {
   try {
     const { carId, startDate, endDate, specialRequests } = req.body;
 
+    // Validate required fields
+    if (!carId || !startDate || !endDate) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Car ID, start date, and end date are required' 
+      });
+    }
+
     // Check if car exists and is available
     const car = await Car.findById(carId).populate('owner');
     if (!car || car.status !== 'approved') {
-      return res.status(404).json({ message: 'Car not available' });
+      return res.status(404).json({ 
+        success: false,
+        message: 'Car not available' 
+      });
     }
 
-    // Check date availability
+    // Validate dates
     const start = new Date(startDate);
     const end = new Date(endDate);
     
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Invalid date format' 
+      });
+    }
+    
+    if (start >= end) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'End date must be after start date' 
+      });
+    }
+    
+    if (start < new Date()) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Start date cannot be in the past' 
+      });
+    }
+
+    // Check date availability
     const conflictingBooking = car.blockedDates.find(blocked => {
       return (start <= blocked.to && end >= blocked.from);
     });
 
     if (conflictingBooking) {
-      return res.status(400).json({ message: 'Car not available for selected dates' });
+      return res.status(400).json({ 
+        success: false,
+        message: 'Car not available for selected dates' 
+      });
     }
 
     // Calculate pricing
     const diffTime = Math.abs(end - start);
     const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    const platformFee = Math.round(car.pricePerDay * totalDays * 0.05); // 5% platform fee
+    const platformFee = Math.round(car.pricePerDay * totalDays * 0.05);
 
     const booking = await Booking.create({
       user: req.user.id,
@@ -56,7 +92,11 @@ exports.createBooking = async (req, res) => {
       booking
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Create booking error:', error);
+    res.status(500).json({ 
+      success: false,
+      message: 'Failed to create booking. Please try again.' 
+    });
   }
 };
 
