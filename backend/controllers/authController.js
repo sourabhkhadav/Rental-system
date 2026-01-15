@@ -91,7 +91,7 @@ exports.login = async (req, res) => {
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
       user.loginAttempts = (user.loginAttempts || 0) + 1;
-      await user.save();
+      await user.save({ validateBeforeSave: false });
       return res.status(401).json({ 
         success: false,
         message: 'Invalid email or password' 
@@ -109,7 +109,7 @@ exports.login = async (req, res) => {
     // Update last login
     user.lastLogin = new Date();
     user.loginAttempts = 0;
-    await user.save();
+    await user.save({ validateBeforeSave: false });
 
     const token = generateToken(user._id);
 
