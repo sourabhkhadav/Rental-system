@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Users, Fuel, Settings, MapPin, Car } from 'lucide-react';
+import { Star, Users, Fuel, Settings, MapPin, Car, ArrowRight } from 'lucide-react';
 import { formatPrice, capitalizeFirst } from '../utils';
 import { ROUTES } from '../constants';
+import BookNowButton from './ui/BookNowButton';
 
 // Loading Spinner Component
 export const LoadingSpinner = ({ size = 'md', className = '' }) => {
@@ -165,7 +166,7 @@ export const StatusBadge = ({ status, className = '' }) => {
 };
 
 // Car Card Component
-export const CarCard = ({ car, className = '' }) => {
+export const CarCard = ({ car, className = '', onBookClick }) => {
   return (
     <div className={`bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden ${className}`}>
       <div className="relative">
@@ -220,13 +221,22 @@ export const CarCard = ({ car, className = '' }) => {
           </div>
         </div>
         
-        <Link 
-          to={`/car/${car._id}`} 
-          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-lg font-semibold hover:from-blue-700 hover:to-purple-700 transition-colors text-center block flex items-center justify-center"
-        >
-          View Details
-          <span className="h-4 w-4 ml-2">→</span>
-        </Link>
+        {onBookClick ? (
+          <BookNowButton
+            onClick={() => onBookClick(car)}
+            className="py-3 text-base"
+          >
+            Book Now
+          </BookNowButton>
+        ) : (
+          <Link 
+            to={`/car/${car._id}`} 
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-6 rounded-xl font-bold text-base hover:from-blue-700 hover:to-indigo-700 transition-all flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+          >
+            Book Now
+            <ArrowRight className="h-5 w-5" />
+          </Link>
+        )}
       </div>
     </div>
   );

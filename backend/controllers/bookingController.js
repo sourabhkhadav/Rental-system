@@ -2,33 +2,41 @@ const Booking = require('../models/Booking');
 const Car = require('../models/Car');
 const User = require('../models/User');
 
-// Create Booking Request
+const ACTIVE_BOOKING_STATUSES = ['pending', 'accepted', 'confirmed'];
+const CANCELLABLE_STATUSES = ['completed', 'cancelled'];
+
+const calculateTotalDays = (startDate, endDate) => {
+  return Math.ceil(Math.abs(endDate - startDate) / (1000 * 60 * 60 * 24));
+};
+
+const calculateBookingAmount = (totalDays, pricePerDay) => {
+  const totalAmount = totalDays * pricePerDay;
+  const platformFee = Math.round(totalAmount * 0.05);
+  return { totalAmount, platformFee, finalAmount: totalAmount + platformFee };
+};
+
+const hasDateConflict = (blockedDates, startDate, endDate) => {
+  return blockedDates.some(blocked => startDate <= blocked.to && endDate >= blocked.from);
+};
+
 exports.createBooking = async (req, res) => {
   try {
-    const { carId, startDate, endDate, specialRequests } = req.body;
+    const { carId, startDate, endDate, specialRequests, pickupTime, dropoffTime } = req.body;
 
-    // Check if car exists and is available
     const car = await Car.findById(carId).populate('owner');
     if (!car || car.status !== 'approved') {
       return res.status(404).json({ message: 'Car not available' });
     }
 
-    // Check date availability
     const start = new Date(startDate);
     const end = new Date(endDate);
     
-    const conflictingBooking = car.blockedDates.find(blocked => {
-      return (start <= blocked.to && end >= blocked.from);
-    });
-
-    if (conflictingBooking) {
+    if (hasDateConflict(car.blockedDates, start, end)) {
       return res.status(400).json({ message: 'Car not available for selected dates' });
     }
 
-    // Calculate pricing
-    const diffTime = Math.abs(end - start);
-    const totalDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    const platformFee = Math.round(car.pricePerDay * totalDays * 0.05); // 5% platform fee
+    const totalDays = calculateTotalDays(start, end);
+    const { totalAmount, platformFee, finalAmount } = calculateBookingAmount(totalDays, car.pricePerDay);
 
     const booking = await Booking.create({
       user: req.user.id,
@@ -38,10 +46,12 @@ exports.createBooking = async (req, res) => {
       endDate: end,
       totalDays,
       pricePerDay: car.pricePerDay,
-      totalAmount: totalDays * car.pricePerDay,
+      totalAmount,
       platformFee,
-      finalAmount: (totalDays * car.pricePerDay) + platformFee,
-      specialRequests
+      finalAmount,
+      specialRequests,
+      pickupTime: pickupTime || '10:00',
+      dropoffTime: dropoffTime || '10:00'
     });
 
     await booking.populate([
@@ -60,18 +70,16 @@ exports.createBooking = async (req, res) => {
   }
 };
 
-// Owner: Accept/Reject Booking
 exports.handleBookingRequest = async (req, res) => {
   try {
     const { bookingId } = req.params;
-    const { action, rejectionReason } = req.body; // action: 'accept' or 'reject'
+    const { action, rejectionReason } = req.body;
 
     const booking = await Booking.findById(bookingId);
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
-    // Check if owner owns the car
     const car = await Car.findById(booking.car);
     if (car.owner.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Not authorized' });
@@ -79,20 +87,15 @@ exports.handleBookingRequest = async (req, res) => {
 
     if (action === 'accept') {
       booking.status = 'accepted';
-      
-      // Block dates in car
       car.blockedDates.push({
         from: booking.startDate,
         to: booking.endDate,
         bookingId: booking._id
       });
       await car.save();
-      
     } else if (action === 'reject') {
       booking.status = 'rejected';
-      if (rejectionReason) {
-        booking.cancellationReason = rejectionReason;
-      }
+      if (rejectionReason) booking.cancellationReason = rejectionReason;
     }
 
     await booking.save();
@@ -111,7 +114,6 @@ exports.handleBookingRequest = async (req, res) => {
   }
 };
 
-// Get User's Bookings
 exports.getUserBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ user: req.user.id })
@@ -125,7 +127,6 @@ exports.getUserBookings = async (req, res) => {
   }
 };
 
-// Get Owner's Bookings
 exports.getOwnerBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({ owner: req.user.id })
@@ -139,7 +140,6 @@ exports.getOwnerBookings = async (req, res) => {
   }
 };
 
-// Cancel Booking
 exports.cancelBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
@@ -150,13 +150,11 @@ exports.cancelBooking = async (req, res) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
-    // Check authorization
     if (booking.user.toString() !== req.user.id && booking.owner.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    // Check if booking can be cancelled
-    if (['completed', 'cancelled'].includes(booking.status)) {
+    if (CANCELLABLE_STATUSES.includes(booking.status)) {
       return res.status(400).json({ message: 'Cannot cancel this booking' });
     }
 
@@ -165,13 +163,11 @@ exports.cancelBooking = async (req, res) => {
     booking.cancelledBy = req.user.role;
     booking.cancellationDate = new Date();
 
-    // Remove blocked dates from car
     const car = await Car.findById(booking.car);
     car.blockedDates = car.blockedDates.filter(
       blocked => blocked.bookingId.toString() !== bookingId
     );
     await car.save();
-
     await booking.save();
 
     res.json({
@@ -184,7 +180,14 @@ exports.cancelBooking = async (req, res) => {
   }
 };
 
-// Add Review
+const updateRating = async (Model, id, newRating) => {
+  const entity = await Model.findById(id);
+  const newTotal = entity.totalRatings + 1;
+  entity.rating = ((entity.rating * entity.totalRatings) + newRating) / newTotal;
+  entity.totalRatings = newTotal;
+  await entity.save();
+};
+
 exports.addReview = async (req, res) => {
   try {
     const { bookingId } = req.params;
@@ -200,26 +203,11 @@ exports.addReview = async (req, res) => {
     }
 
     if (booking.user.toString() === req.user.id) {
-      // User reviewing car/owner
       booking.userReview = { rating, comment, date: new Date() };
-      
-      // Update car rating
-      const car = await Car.findById(booking.car);
-      const newTotal = car.totalRatings + 1;
-      car.rating = ((car.rating * car.totalRatings) + rating) / newTotal;
-      car.totalRatings = newTotal;
-      await car.save();
-      
+      await updateRating(Car, booking.car, rating);
     } else if (booking.owner.toString() === req.user.id) {
-      // Owner reviewing user
       booking.ownerReview = { rating, comment, date: new Date() };
-      
-      // Update user rating
-      const user = await User.findById(booking.user);
-      const newTotal = user.totalRatings + 1;
-      user.rating = ((user.rating * user.totalRatings) + rating) / newTotal;
-      user.totalRatings = newTotal;
-      await user.save();
+      await updateRating(User, booking.user, rating);
     } else {
       return res.status(403).json({ message: 'Not authorized' });
     }

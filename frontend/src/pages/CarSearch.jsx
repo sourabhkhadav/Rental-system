@@ -3,13 +3,16 @@ import { useSearchParams, Link } from 'react-router-dom';
 import { Search, MapPin, Users, Fuel, Settings, Calendar, Car, Star, Filter, SlidersHorizontal } from 'lucide-react';
 import { DEFAULT_CAR_IMAGE } from '../hooks';
 import { carService } from '../services/api';
-import { DUMMY_CARS } from '../constants';
+import BookingModal from '../components/common/BookingModal';
+import BookNowButton from '../components/ui/BookNowButton';
 
 const CarSearch = () => {
   const [searchParams] = useSearchParams();
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedCar, setSelectedCar] = useState(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
   const [filters, setFilters] = useState({
     city: searchParams.get('city') || '',
     startDate: searchParams.get('startDate') || '',
@@ -22,29 +25,50 @@ const CarSearch = () => {
   });
 
   useEffect(() => {
+    // Initialize filters from URL params
+    const city = searchParams.get('city') || '';
+    const startDate = searchParams.get('startDate') || '';
+    const endDate = searchParams.get('endDate') || '';
+    
+    setFilters(prev => ({
+      ...prev,
+      city,
+      startDate,
+      endDate
+    }));
+    
+    // Fetch cars with initial params
     fetchCars();
-  }, []);
+  }, [searchParams]);
 
   const fetchCars = async () => {
     setLoading(true);
     try {
-      const response = await carService.searchCars(filters);
+      // Build query params from filters
+      const params = {};
+      if (filters.city) params.city = filters.city;
+      if (filters.startDate) params.startDate = filters.startDate;
+      if (filters.endDate) params.endDate = filters.endDate;
+      if (filters.minPrice) params.minPrice = filters.minPrice;
+      if (filters.maxPrice) params.maxPrice = filters.maxPrice;
+      if (filters.seats) params.seats = filters.seats;
+      if (filters.fuelType) params.fuelType = filters.fuelType;
+      if (filters.transmission) params.transmission = filters.transmission;
       
-      if (response.success && Array.isArray(response.cars) && response.cars.length > 0) {
-        // Ensure each car has a default image if none provided
+      const response = await carService.searchCars(params);
+      
+      if (response.success && Array.isArray(response.cars)) {
         const carsWithImages = response.cars.map(car => ({
           ...car,
           images: car.images && car.images.length > 0 ? car.images : [DEFAULT_CAR_IMAGE]
         }));
         setCars(carsWithImages);
       } else {
-        // Show dummy cars when no real cars found
-        setCars(DUMMY_CARS);
+        setCars([]);
       }
     } catch (error) {
       console.error('Error fetching cars:', error);
-      // Show dummy cars on error
-      setCars(DUMMY_CARS);
+      setCars([]);
     } finally {
       setLoading(false);
     }
@@ -72,6 +96,16 @@ const CarSearch = () => {
     });
   };
 
+  const handleBookClick = (car) => {
+    setSelectedCar(car);
+    setShowBookingModal(true);
+  };
+
+  const closeBookingModal = () => {
+    setShowBookingModal(false);
+    setSelectedCar(null);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -95,7 +129,7 @@ const CarSearch = () => {
                   placeholder="Enter city"
                   value={filters.city}
                   onChange={(e) => handleFilterChange('city', e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 />
               </div>
               
@@ -104,7 +138,7 @@ const CarSearch = () => {
                 value={filters.startDate}
                 onChange={(e) => handleFilterChange('startDate', e.target.value)}
                 min={new Date().toISOString().split('T')[0]}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-400"
               />
               
               <input
@@ -112,7 +146,7 @@ const CarSearch = () => {
                 value={filters.endDate}
                 onChange={(e) => handleFilterChange('endDate', e.target.value)}
                 min={filters.startDate || new Date().toISOString().split('T')[0]}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-400"
               />
               
               <button
@@ -154,7 +188,7 @@ const CarSearch = () => {
                   placeholder="Min Price (₹/day)"
                   value={filters.minPrice}
                   onChange={(e) => handleFilterChange('minPrice', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 />
                 
                 <input
@@ -162,13 +196,13 @@ const CarSearch = () => {
                   placeholder="Max Price (₹/day)"
                   value={filters.maxPrice}
                   onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 />
                 
                 <select
                   value={filters.fuelType}
                   onChange={(e) => handleFilterChange('fuelType', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 >
                   <option value="">Any Fuel Type</option>
                   <option value="petrol">Petrol</option>
@@ -180,7 +214,7 @@ const CarSearch = () => {
                 <select
                   value={filters.transmission}
                   onChange={(e) => handleFilterChange('transmission', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 >
                   <option value="">Any Transmission</option>
                   <option value="manual">Manual</option>
@@ -283,18 +317,27 @@ const CarSearch = () => {
                     </div>
                   </div>
                   
-                  <Link 
-                    to={`/car/${car._id}`} 
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all transform hover:scale-105 text-center block"
+                  <BookNowButton
+                    onClick={() => handleBookClick(car)}
+                    className="py-3 text-base"
                   >
-                    View Details
-                  </Link>
+                    Book Now
+                  </BookNowButton>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* Booking Modal */}
+      {selectedCar && (
+        <BookingModal 
+          car={selectedCar}
+          isOpen={showBookingModal}
+          onClose={closeBookingModal}
+        />
+      )}
     </div>
   );
 };

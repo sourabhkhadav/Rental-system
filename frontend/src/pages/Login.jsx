@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
@@ -14,6 +14,8 @@ const Login = () => {
   
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from || '/';
 
   const handleChange = (e) => {
     setFormData({
@@ -35,13 +37,13 @@ const Login = () => {
       if (result.success) {
         toast.success('Login successful!');
         
-        // Route based on user role
+        // Route based on user role or return to previous page
         if (result.user.role === 'admin') {
           navigate('/admin/dashboard');
         } else if (result.user.role === 'owner') {
           navigate('/dashboard');
         } else {
-          navigate('/');
+          navigate(from, { replace: true });
         }
       } else {
         console.log('Login failed:', result.message);

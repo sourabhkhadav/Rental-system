@@ -1,19 +1,19 @@
 import { useState, useEffect, useMemo } from 'react';
-import { carService } from '../services/api';
-import { bookingService } from '../services/api';
-import { DUMMY_CARS } from '../constants';
+import { carService, bookingService } from '../services/api';
 
-// Default car image for fallback
 export const DEFAULT_CAR_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjI0MCIgdmlld0JveD0iMCAwIDQwMCAyNDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI0MDAiIGhlaWdodD0iMjQwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik0xMDAgMTIwSDMwMEMzMTAuNDU3IDEyMCAzMTkgMTI4LjU0MyAzMTkgMTM5VjE2MEgzMDBWMTgwSDEwMFYxNjBIODFWMTM5QzgxIDEyOC41NDMgODkuNTQzIDEyMCAxMDAgMTIwWiIgZmlsbD0iIzM3NDE1MSIvPgo8Y2lyY2xlIGN4PSIxMjAiIGN5PSIxODAiIHI9IjIwIiBmaWxsPSIjMTExODI3Ii8+CjxjaXJjbGUgY3g9IjI4MCIgY3k9IjE4MCIgcj0iMjAiIGZpbGw9IiMxMTE4MjciLz4KPHJlY3QgeD0iMTIwIiB5PSIxNDAiIHdpZHRoPSIxNjAiIGhlaWdodD0iMjAiIGZpbGw9IiM2Mzc0OEYiLz4KPC9zdmc+';
 
-// Hook for fetching cars - only shows real data
+const addDefaultImage = (car) => ({
+  ...car,
+  images: car.images && car.images.length > 0 ? car.images : [DEFAULT_CAR_IMAGE]
+});
+
 export const useCars = (initialOptions = {}) => {
   const [cars, setCars] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [options, setOptions] = useState(initialOptions);
 
-  // Memoize options to prevent unnecessary re-renders
   const memoizedOptions = useMemo(() => options, [JSON.stringify(options)]);
 
   useEffect(() => {
@@ -25,14 +25,8 @@ export const useCars = (initialOptions = {}) => {
         const response = await carService.getAllCars(memoizedOptions);
         
         if (response.success && Array.isArray(response.cars)) {
-          // Only show real cars with proper image fallback
-          const carsWithImages = response.cars.map(car => ({
-            ...car,
-            images: car.images && car.images.length > 0 ? car.images : [DEFAULT_CAR_IMAGE]
-          }));
-          setCars(carsWithImages);
+          setCars(response.cars.map(addDefaultImage));
         } else {
-          setError('No cars available');
           setCars([]);
         }
       } catch (err) {
@@ -51,67 +45,9 @@ export const useCars = (initialOptions = {}) => {
     setOptions(newOptions);
   };
 
-  return {
-    cars,
-    loading,
-    error,
-    updateFilters
-  };
+  return { cars, loading, error, updateFilters };
 };
 
-// Hook for fetching cars with dummy fallback for home pages
-export const useCarsWithDummy = (initialOptions = {}) => {
-  const [cars, setCars] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [options, setOptions] = useState(initialOptions);
-
-  const memoizedOptions = useMemo(() => options, [JSON.stringify(options)]);
-
-  useEffect(() => {
-    const fetchCars = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const response = await carService.getAllCars(memoizedOptions);
-        
-        if (response.success && Array.isArray(response.cars) && response.cars.length > 0) {
-          const carsWithImages = response.cars.map(car => ({
-            ...car,
-            images: car.images && car.images.length > 0 ? car.images : [DEFAULT_CAR_IMAGE]
-          }));
-          setCars(carsWithImages);
-        } else {
-          // Show dummy cars when no real cars available
-          setCars(DUMMY_CARS);
-        }
-      } catch (err) {
-        console.error('Error fetching cars:', err);
-        // Show dummy cars on error
-        setCars(DUMMY_CARS);
-        setError(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCars();
-  }, [memoizedOptions]);
-
-  const updateFilters = (newOptions) => {
-    setOptions(newOptions);
-  };
-
-  return {
-    cars,
-    loading,
-    error,
-    updateFilters
-  };
-};
-
-// Hook for managing bookings - only real data
 export const useBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -142,9 +78,5 @@ export const useBookings = () => {
     fetchBookings();
   }, []);
 
-  return {
-    bookings,
-    loading,
-    error
-  };
+  return { bookings, loading, error };
 };

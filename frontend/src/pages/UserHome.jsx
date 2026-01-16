@@ -2,21 +2,24 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, MapPin, Calendar, Filter, TrendingUp, Clock, Car } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useCarsWithDummy } from '../hooks';
+import { useCars } from '../hooks';
 import { CarCard, LoadingSpinner, EmptyState, Button, Input } from '../components/UI';
 import { POPULAR_CITIES, ROUTES } from '../constants';
 import { buildSearchParams } from '../utils';
 import CityCard from '../components/common/CityCard';
+import BookingModal from '../components/common/BookingModal';
 
 const UserHome = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { cars, loading } = useCarsWithDummy({ limit: 12 });
+  const { cars, loading } = useCars({ limit: 12 });
   const [searchQuery, setSearchQuery] = useState({
     city: '',
     startDate: '',
     endDate: ''
   });
+  const [selectedCar, setSelectedCar] = useState(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
 
   const handleQuickSearch = (e) => {
     e.preventDefault();
@@ -31,6 +34,16 @@ const UserHome = () => {
 
   const updateSearchQuery = (field, value) => {
     setSearchQuery(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleBookClick = (car) => {
+    setSelectedCar(car);
+    setShowBookingModal(true);
+  };
+
+  const closeBookingModal = () => {
+    setShowBookingModal(false);
+    setSelectedCar(null);
   };
 
   return (
@@ -92,13 +105,12 @@ const UserHome = () => {
         {/* Popular Cities */}
         <section className="mb-8 md:mb-12">
           <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Popular Cities</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3 md:gap-4">
-            {POPULAR_CITIES.map((city) => (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            {POPULAR_CITIES.slice(0, 6).map((city) => (
               <CityCard
                 key={city}
                 city={city}
                 onClick={handleCityClick}
-                className="p-3 md:p-4"
               />
             ))}
           </div>
@@ -138,7 +150,7 @@ const UserHome = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {cars.map((car) => (
-                <CarCard key={car._id} car={car} />
+                <CarCard key={car._id} car={car} onBookClick={handleBookClick} />
               ))}
             </div>
           )}
@@ -177,6 +189,14 @@ const UserHome = () => {
           </div>
         </section>
       </div>
+
+      {selectedCar && (
+        <BookingModal 
+          car={selectedCar}
+          isOpen={showBookingModal}
+          onClose={closeBookingModal}
+        />
+      )}
     </div>
   );
 };

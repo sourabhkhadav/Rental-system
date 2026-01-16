@@ -14,7 +14,6 @@ const { uploadCarFiles, handleUploadError } = require('../middleware/upload');
 
 const router = express.Router();
 
-// Validation rules
 const carValidation = [
   body('name').trim().isLength({ min: 2 }).withMessage('Car name must be at least 2 characters'),
   body('brand').notEmpty().withMessage('Brand is required'),
@@ -29,14 +28,12 @@ const carValidation = [
   body('pickupCity').notEmpty().withMessage('Pickup city is required')
 ];
 
-// Routes
 router.post('/', authenticate, authorize(['owner']), uploadCarFiles, handleUploadError, carValidation, addCar);
 router.get('/my-cars', authenticate, authorize(['owner']), getMyCars);
 router.get('/owner-stats', authenticate, authorize(['owner']), getOwnerStats);
 router.put('/:id', authenticate, authorize(['owner']), uploadCarFiles, handleUploadError, updateCar);
 router.delete('/:id', authenticate, authorize(['owner']), deleteCar);
 
-// Public routes
 router.get('/search', getAllCars);
 router.get('/', getAllCars);
 router.get('/:id', getCarById);

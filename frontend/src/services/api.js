@@ -1,16 +1,17 @@
 import axios from 'axios';
 import { API_ENDPOINTS } from '../constants';
 
-// Create axios instance with default config
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5005';
+const API_TIMEOUT = 10000;
+
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5005',
-  timeout: 10000,
+  baseURL: API_BASE_URL,
+  timeout: API_TIMEOUT,
   headers: {
     'Content-Type': 'application/json'
   }
 });
 
-// Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -22,7 +23,6 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response interceptor for error handling
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -34,7 +34,6 @@ api.interceptors.response.use(
   }
 );
 
-// Auth Services
 export const authService = {
   login: async (credentials) => {
     const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, credentials);
@@ -52,7 +51,6 @@ export const authService = {
   }
 };
 
-// Car Services
 export const carService = {
   getAllCars: async (params = {}) => {
     const response = await api.get(API_ENDPOINTS.CARS.BASE, { params });
@@ -75,7 +73,6 @@ export const carService = {
   }
 };
 
-// Booking Services
 export const bookingService = {
   createBooking: async (bookingData) => {
     const response = await api.post(API_ENDPOINTS.BOOKINGS.BASE, bookingData);

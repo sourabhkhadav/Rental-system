@@ -13,7 +13,6 @@ const { uploadProfile, handleUploadError } = require('../middleware/upload');
 
 const router = express.Router();
 
-// Validation rules
 const registerValidation = [
   body('name').trim().isLength({ min: 2 }).withMessage('Name must be at least 2 characters'),
   body('email').isEmail().withMessage('Please provide a valid email'),
@@ -32,7 +31,6 @@ const changePasswordValidation = [
   body('newPassword').isLength({ min: 6 }).withMessage('New password must be at least 6 characters')
 ];
 
-// Routes
 router.post('/register', registerValidation, register);
 router.post('/login', loginValidation, login);
 router.get('/me', authenticate, getMe);

@@ -4,6 +4,7 @@ import axios from 'axios';
 import { MapPin, Users, Fuel, Settings, Star, Calendar, Phone, Car, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import BookNowButton from '../components/ui/BookNowButton';
 
 const CarDetails = () => {
   const { id } = useParams();
@@ -95,10 +96,10 @@ const CarDetails = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
           {/* Car Details */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Images */}
             <div className="card">
               {car.images && car.images.length > 0 ? (
@@ -121,18 +122,18 @@ const CarDetails = () => {
 
             {/* Basic Info */}
             <div className="card">
-              <div className="flex justify-between items-start mb-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">{car.name}</h1>
-                  <p className="text-xl text-gray-600">{car.brand}</p>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{car.name}</h1>
+                  <p className="text-lg sm:text-xl text-gray-600">{car.brand}</p>
                 </div>
-                <div className="text-right">
-                  <div className="text-3xl font-bold text-primary-600">₹{car.pricePerDay}</div>
+                <div className="text-left sm:text-right">
+                  <div className="text-2xl sm:text-3xl font-bold text-primary-600">₹{car.pricePerDay}</div>
                   <div className="text-gray-600">per day</div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
                 <div className="flex items-center space-x-2 text-gray-600">
                   <Users className="h-5 w-5" />
                   <span>{car.seats} seats</span>
@@ -201,9 +202,9 @@ const CarDetails = () => {
 
           {/* Booking Form */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6 sticky top-8">
-              <div className="text-center mb-6">
-                <div className="text-3xl font-bold text-blue-600">₹{car.pricePerDay}</div>
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 sm:p-6 lg:sticky lg:top-8">
+              <div className="text-center mb-4 sm:mb-6">
+                <div className="text-2xl sm:text-3xl font-bold text-blue-600">₹{car.pricePerDay}</div>
                 <div className="text-gray-600">per day</div>
                 <div className="flex items-center justify-center mt-2">
                   <Star className="h-4 w-4 text-yellow-400 fill-current" />
@@ -211,17 +212,17 @@ const CarDetails = () => {
                 </div>
               </div>
               
-              <form onSubmit={handleBooking} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <form onSubmit={handleBooking} className="space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <Calendar className="h-4 w-4 inline mr-1" />
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4 inline mr-1" />
                       Start Date
                     </label>
                     <input
                       type="date"
                       required
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                       value={bookingData.startDate}
                       onChange={(e) => setBookingData({
                         ...bookingData,
@@ -232,14 +233,14 @@ const CarDetails = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <Calendar className="h-4 w-4 inline mr-1" />
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4 inline mr-1" />
                       End Date
                     </label>
                     <input
                       type="date"
                       required
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                       value={bookingData.endDate}
                       onChange={(e) => setBookingData({
                         ...bookingData,
@@ -251,11 +252,11 @@ const CarDetails = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                     Special Requests (Optional)
                   </label>
                   <textarea
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                     rows="3"
                     placeholder="Any special requirements..."
                     value={bookingData.specialRequests}
@@ -267,48 +268,42 @@ const CarDetails = () => {
                 </div>
 
                 {totalDays > 0 && (
-                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Duration:</span>
-                        <span className="font-medium">{totalDays} days</span>
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 sm:p-5 rounded-lg border border-blue-200">
+                    <h4 className="font-bold text-gray-900 mb-3 sm:mb-4 flex items-center text-sm sm:text-base">
+                      <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600" />
+                      Price Breakdown
+                    </h4>
+                    <div className="space-y-2 sm:space-y-3">
+                      <div className="flex justify-between text-gray-700 text-sm sm:text-base">
+                        <span>Duration:</span>
+                        <span className="font-semibold">{totalDays} {totalDays === 1 ? 'day' : 'days'}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Price per day:</span>
-                        <span className="font-medium">₹{car.pricePerDay}</span>
+                      <div className="flex justify-between text-gray-700 text-sm sm:text-base">
+                        <span>₹{car.pricePerDay} × {totalDays} {totalDays === 1 ? 'day' : 'days'}</span>
+                        <span className="font-semibold">₹{totalAmount}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Subtotal:</span>
-                        <span className="font-medium">₹{totalAmount}</span>
+                      <div className="flex justify-between text-gray-700 text-sm sm:text-base">
+                        <span>Platform fee (5%)</span>
+                        <span className="font-semibold">₹{Math.round(totalAmount * 0.05)}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Platform fee (5%):</span>
-                        <span className="font-medium">₹{Math.round(totalAmount * 0.05)}</span>
-                      </div>
-                      <div className="border-t border-blue-200 pt-2">
+                      <div className="border-t-2 border-blue-200 pt-2 sm:pt-3">
                         <div className="flex justify-between items-center">
-                          <span className="font-semibold text-lg">Total Amount:</span>
-                          <span className="font-bold text-xl text-blue-600">₹{totalAmount + Math.round(totalAmount * 0.05)}</span>
+                          <span className="font-bold text-base sm:text-lg text-gray-900">Total Amount</span>
+                          <span className="font-bold text-xl sm:text-2xl text-blue-600">₹{totalAmount + Math.round(totalAmount * 0.05)}</span>
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                <button
-                  type="submit"
+                <BookNowButton
+                  onClick={handleBooking}
+                  loading={bookingLoading}
                   disabled={bookingLoading || !isAuthenticated}
-                  className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
+                  className="text-sm sm:text-base py-2.5 sm:py-3"
                 >
-                  {bookingLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Sending Request...
-                    </>
-                  ) : (
-                    'Send Booking Request'
-                  )}
-                </button>
+                  Book Now
+                </BookNowButton>
 
                 {!isAuthenticated && (
                   <div className="text-center">
@@ -321,8 +316,8 @@ const CarDetails = () => {
               </form>
 
               {/* Security Features */}
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <div className="flex items-center space-x-2 text-sm text-gray-600 mb-2">
+              <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
+                <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600 mb-2">
                   <Shield className="h-4 w-4 text-green-500" />
                   <span>Verified owner</span>
                 </div>

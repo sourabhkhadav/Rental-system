@@ -2,11 +2,17 @@ const User = require('../models/User');
 const Car = require('../models/Car');
 const Booking = require('../models/Booking');
 
-// Dashboard Stats
+const ACTIVE_BOOKING_STATUSES = ['pending', 'accepted', 'confirmed'];
+
+const createUserResponse = (user) => ({
+  id: user._id,
+  name: user.name,
+  email: user.email,
+  status: user.status
+});
+
 exports.getDashboardStats = async (req, res) => {
   try {
-    console.log('Getting dashboard stats for admin:', req.user.email);
-    
     const [
       totalUsers,
       totalOwners,
@@ -25,32 +31,23 @@ exports.getDashboardStats = async (req, res) => {
       Booking.countDocuments({ status: 'completed' })
     ]);
 
-    const stats = {
-      totalUsers,
-      totalOwners,
-      totalCars,
-      totalBookings,
-      pendingApprovals: {
-        users: pendingUsers,
-        cars: pendingCars
-      },
-      completedBookings,
-      totalEarnings: 0
-    };
-
-    console.log('Dashboard stats:', stats);
-
     res.json({
       success: true,
-      stats
+      stats: {
+        totalUsers,
+        totalOwners,
+        totalCars,
+        totalBookings,
+        pendingApprovals: { users: pendingUsers, cars: pendingCars },
+        completedBookings,
+        totalEarnings: 0
+      }
     });
   } catch (error) {
-    console.error('Dashboard stats error:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// Get Pending Users
 exports.getPendingUsers = async (req, res) => {
   try {
     const users = await User.find({ status: 'pending' })
@@ -63,41 +60,29 @@ exports.getPendingUsers = async (req, res) => {
   }
 };
 
-// Approve/Reject User
 exports.handleUserApproval = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { action, reason } = req.body; // action: 'approve' or 'reject'
+    const { action } = req.body;
 
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    if (action === 'approve') {
-      user.status = 'approved';
-    } else if (action === 'reject') {
-      user.status = 'rejected';
-    }
-
+    user.status = action === 'approve' ? 'approved' : 'rejected';
     await user.save();
 
     res.json({
       success: true,
       message: `User ${action}d successfully`,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        status: user.status
-      }
+      user: createUserResponse(user)
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Get Pending Cars
 exports.getPendingCars = async (req, res) => {
   try {
     const cars = await Car.find({ status: 'pending' })
@@ -110,23 +95,17 @@ exports.getPendingCars = async (req, res) => {
   }
 };
 
-// Approve/Reject Car
 exports.handleCarApproval = async (req, res) => {
   try {
     const { carId } = req.params;
-    const { action, reason } = req.body;
+    const { action } = req.body;
 
     const car = await Car.findById(carId).populate('owner', 'name email');
     if (!car) {
       return res.status(404).json({ message: 'Car not found' });
     }
 
-    if (action === 'approve') {
-      car.status = 'approved';
-    } else if (action === 'reject') {
-      car.status = 'rejected';
-    }
-
+    car.status = action === 'approve' ? 'approved' : 'rejected';
     await car.save();
 
     res.json({
@@ -139,89 +118,57 @@ exports.handleCarApproval = async (req, res) => {
   }
 };
 
-// Block/Unblock User
 exports.blockUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { action, reason } = req.body; // action: 'block' or 'unblock'
+    const { action } = req.body;
 
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    if (action === 'block') {
-      user.status = 'blocked';
-    } else if (action === 'unblock') {
-      user.status = 'approved';
-    }
-
+    user.status = action === 'block' ? 'blocked' : 'approved';
     await user.save();
 
     res.json({
       success: true,
       message: `User ${action}ed successfully`,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        status: user.status
-      }
+      user: createUserResponse(user)
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Get All Users
 exports.getAllUsers = async (req, res) => {
   try {
-    console.log('Getting all users for admin:', req.user.email);
-    
     const users = await User.find({})
       .select('-password')
       .sort({ createdAt: -1 })
       .limit(100);
 
-    console.log('Found users:', users.length);
-
-    res.json({
-      success: true,
-      users
-    });
+    res.json({ success: true, users });
   } catch (error) {
-    console.error('Get users error:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// Get All Cars
 exports.getAllCars = async (req, res) => {
   try {
-    console.log('Getting all cars for admin:', req.user.email);
-    
     const cars = await Car.find({})
       .populate('owner', 'name email phone')
       .sort({ createdAt: -1 })
       .limit(100);
 
-    console.log('Found cars:', cars.length);
-
-    res.json({
-      success: true,
-      cars
-    });
+    res.json({ success: true, cars });
   } catch (error) {
-    console.error('Get cars error:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// Get All Bookings
 exports.getAllBookings = async (req, res) => {
   try {
-    console.log('Getting all bookings for admin:', req.user.email);
-    
     const bookings = await Booking.find({})
       .populate('user', 'name email phone')
       .populate('owner', 'name email phone')
@@ -229,19 +176,12 @@ exports.getAllBookings = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(100);
 
-    console.log('Found bookings:', bookings.length);
-
-    res.json({
-      success: true,
-      bookings
-    });
+    res.json({ success: true, bookings });
   } catch (error) {
-    console.error('Get bookings error:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// Cancel Booking (Admin)
 exports.cancelBooking = async (req, res) => {
   try {
     const { bookingId } = req.params;
@@ -257,13 +197,11 @@ exports.cancelBooking = async (req, res) => {
     booking.cancelledBy = 'admin';
     booking.cancellationDate = new Date();
 
-    // Remove blocked dates from car
     const car = await Car.findById(booking.car);
     car.blockedDates = car.blockedDates.filter(
       blocked => blocked.bookingId.toString() !== bookingId
     );
     await car.save();
-
     await booking.save();
 
     res.json({

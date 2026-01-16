@@ -1,31 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import axios from 'axios';
+import api from '../services/api';
 
 const AuthContext = createContext();
-
-const api = axios.create({
-  baseURL: 'http://localhost:5005',
-  headers: { 'Content-Type': 'application/json' }
-});
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
 
 const initialState = {
   user: null,
@@ -80,6 +56,18 @@ const authReducer = (state, action) => {
   }
 };
 
+const handleApiResponse = (response) => {
+  if (response.success) {
+    return { success: true, ...response };
+  }
+  return { success: false, message: response.message };
+};
+
+const handleApiError = (error, defaultMessage) => ({
+  success: false,
+  message: error.response?.data?.message || defaultMessage
+});
+
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
@@ -106,14 +94,10 @@ export const AuthProvider = ({ children }) => {
       if (res.data.success) {
         dispatch({ type: 'LOGIN_SUCCESS', payload: res.data });
         return { success: true, user: res.data.user };
-      } else {
-        return { success: false, message: res.data.message };
       }
+      return handleApiResponse(res.data);
     } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.message || 'Login failed' 
-      };
+      return handleApiError(error, 'Login failed');
     }
   };
 
@@ -123,14 +107,10 @@ export const AuthProvider = ({ children }) => {
       if (res.data.success) {
         dispatch({ type: 'LOGIN_SUCCESS', payload: res.data });
         return { success: true, user: res.data.user, message: res.data.message };
-      } else {
-        return { success: false, message: res.data.message };
       }
+      return handleApiResponse(res.data);
     } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.message || 'Registration failed' 
-      };
+      return handleApiError(error, 'Registration failed');
     }
   };
 
@@ -139,31 +119,19 @@ export const AuthProvider = ({ children }) => {
       const res = await api.put('/api/auth/profile', profileData);
       if (res.data.success) {
         dispatch({ type: 'UPDATE_USER', payload: res.data.user });
-        return { success: true, message: res.data.message };
-      } else {
-        return { success: false, message: res.data.message };
       }
+      return handleApiResponse(res.data);
     } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.message || 'Profile update failed' 
-      };
+      return handleApiError(error, 'Profile update failed');
     }
   };
 
   const changePassword = async (passwordData) => {
     try {
       const res = await api.put('/api/auth/change-password', passwordData);
-      if (res.data.success) {
-        return { success: true, message: res.data.message };
-      } else {
-        return { success: false, message: res.data.message };
-      }
+      return handleApiResponse(res.data);
     } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.message || 'Password change failed' 
-      };
+      return handleApiError(error, 'Password change failed');
     }
   };
 
@@ -172,15 +140,10 @@ export const AuthProvider = ({ children }) => {
       const res = await api.delete('/api/auth/account');
       if (res.data.success) {
         dispatch({ type: 'LOGOUT' });
-        return { success: true, message: res.data.message };
-      } else {
-        return { success: false, message: res.data.message };
       }
+      return handleApiResponse(res.data);
     } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.message || 'Account deletion failed' 
-      };
+      return handleApiError(error, 'Account deletion failed');
     }
   };
 

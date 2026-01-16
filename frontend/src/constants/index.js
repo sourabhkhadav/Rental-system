@@ -1,6 +1,5 @@
 import { DEFAULT_CAR_IMAGE } from '../hooks';
 
-// API Endpoints
 export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: '/api/auth/login',
@@ -21,7 +20,6 @@ export const API_ENDPOINTS = {
   }
 };
 
-// App Routes
 export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
@@ -35,14 +33,12 @@ export const ROUTES = {
   ADMIN: '/admin'
 };
 
-// User Roles
 export const USER_ROLES = {
   USER: 'user',
   OWNER: 'owner',
   ADMIN: 'admin'
 };
 
-// Booking Status
 export const BOOKING_STATUS = {
   PENDING: 'pending',
   ACCEPTED: 'accepted',
@@ -53,7 +49,6 @@ export const BOOKING_STATUS = {
   CANCELLED: 'cancelled'
 };
 
-// Car Status
 export const CAR_STATUS = {
   PENDING: 'pending',
   APPROVED: 'approved',
@@ -62,12 +57,10 @@ export const CAR_STATUS = {
   INACTIVE: 'inactive'
 };
 
-// Popular Cities
 export const POPULAR_CITIES = [
   'Mumbai', 'Delhi', 'Bangalore', 'Chennai', 'Hyderabad', 'Pune', 'Kolkata', 'Ahmedabad'
 ];
 
-// Dummy Cars for display when no real cars are available
 export const DUMMY_CARS = [
   {
     _id: 'dummy-1',
@@ -110,14 +103,12 @@ export const DUMMY_CARS = [
   }
 ];
 
-// Car Specifications
 export const CAR_SPECS = {
   FUEL_TYPES: ['petrol', 'diesel', 'cng', 'electric'],
   TRANSMISSIONS: ['manual', 'automatic'],
   SEAT_OPTIONS: [4, 5, 7, 8]
 };
 
-// Platform Configuration
 export const PLATFORM_CONFIG = {
   FEE_PERCENTAGE: 0.05,
   MIN_BOOKING_DAYS: 1,
@@ -125,7 +116,6 @@ export const PLATFORM_CONFIG = {
   CURRENCY: '₹'
 };
 
-// Status Colors
 export const STATUS_COLORS = {
   [BOOKING_STATUS.PENDING]: 'bg-yellow-100 text-yellow-800',
   [BOOKING_STATUS.ACCEPTED]: 'bg-green-100 text-green-800',

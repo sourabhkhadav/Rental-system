@@ -2,7 +2,15 @@ const Car = require('../models/Car');
 const Booking = require('../models/Booking');
 const { validationResult } = require('express-validator');
 
-// Add Car
+const ACTIVE_BOOKING_STATUSES = ['pending', 'accepted', 'confirmed'];
+
+const extractCarFiles = (files) => ({
+  images: files.images ? files.images.map(file => file.path) : [],
+  rcDocument: files.rcDocument?.[0]?.path,
+  insurance: files.insurance?.[0]?.path,
+  pollutionCert: files.pollutionCert?.[0]?.path
+});
+
 exports.addCar = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -16,17 +24,12 @@ exports.addCar = async (req, res) => {
       availableFrom, availableTo, pickupAddress, pickupCity, features
     } = req.body;
 
-    // Check if number plate already exists
     const existingCar = await Car.findOne({ numberPlate });
     if (existingCar) {
       return res.status(400).json({ message: 'Car with this number plate already exists' });
     }
 
-    // Handle file uploads
-    const images = req.files.images ? req.files.images.map(file => file.path) : [];
-    const rcDocument = req.files.rcDocument ? req.files.rcDocument[0].path : null;
-    const insurance = req.files.insurance ? req.files.insurance[0].path : null;
-    const pollutionCert = req.files.pollutionCert ? req.files.pollutionCert[0].path : null;
+    const carFiles = extractCarFiles(req.files);
 
     const car = await Car.create({
       owner: req.user.id,
@@ -49,10 +52,7 @@ exports.addCar = async (req, res) => {
         city: pickupCity
       },
       features: features ? JSON.parse(features) : [],
-      images,
-      rcDocument,
-      insurance,
-      pollutionCert
+      ...carFiles
     });
 
     res.status(201).json({
@@ -65,7 +65,6 @@ exports.addCar = async (req, res) => {
   }
 };
 
-// Get My Cars
 exports.getMyCars = async (req, res) => {
   try {
     const cars = await Car.find({ owner: req.user.id }).sort({ createdAt: -1 });
@@ -75,7 +74,6 @@ exports.getMyCars = async (req, res) => {
   }
 };
 
-// Get Owner Stats
 exports.getOwnerStats = async (req, res) => {
   try {
     const cars = await Car.find({ owner: req.user.id });
@@ -99,7 +97,6 @@ exports.getOwnerStats = async (req, res) => {
   }
 };
 
-// Update Car
 exports.updateCar = async (req, res) => {
   try {
     const car = await Car.findOne({ _id: req.params.id, owner: req.user.id });
@@ -107,20 +104,11 @@ exports.updateCar = async (req, res) => {
       return res.status(404).json({ message: 'Car not found' });
     }
 
-    // Handle file uploads if provided
     const updateData = { ...req.body };
-    if (req.files.images) {
-      updateData.images = req.files.images.map(file => file.path);
-    }
-    if (req.files.rcDocument) {
-      updateData.rcDocument = req.files.rcDocument[0].path;
-    }
-    if (req.files.insurance) {
-      updateData.insurance = req.files.insurance[0].path;
-    }
-    if (req.files.pollutionCert) {
-      updateData.pollutionCert = req.files.pollutionCert[0].path;
-    }
+    if (req.files.images) updateData.images = req.files.images.map(file => file.path);
+    if (req.files.rcDocument) updateData.rcDocument = req.files.rcDocument[0].path;
+    if (req.files.insurance) updateData.insurance = req.files.insurance[0].path;
+    if (req.files.pollutionCert) updateData.pollutionCert = req.files.pollutionCert[0].path;
 
     const updatedCar = await Car.findByIdAndUpdate(
       req.params.id,
@@ -134,7 +122,6 @@ exports.updateCar = async (req, res) => {
   }
 };
 
-// Delete Car
 exports.deleteCar = async (req, res) => {
   try {
     const car = await Car.findOne({ _id: req.params.id, owner: req.user.id });
@@ -142,16 +129,13 @@ exports.deleteCar = async (req, res) => {
       return res.status(404).json({ message: 'Car not found' });
     }
 
-    // Check if car has active bookings
     const activeBookings = await Booking.find({
       car: req.params.id,
-      status: { $in: ['pending', 'accepted', 'confirmed'] }
+      status: { $in: ACTIVE_BOOKING_STATUSES }
     });
 
     if (activeBookings.length > 0) {
-      return res.status(400).json({ 
-        message: 'Cannot delete car with active bookings' 
-      });
+      return res.status(400).json({ message: 'Cannot delete car with active bookings' });
     }
 
     await Car.findByIdAndDelete(req.params.id);
@@ -161,39 +145,58 @@ exports.deleteCar = async (req, res) => {
   }
 };
 
-// Get All Cars (Public)
+const buildCarQuery = (filters) => {
+  const { city, seats, fuelType, transmission, minPrice, maxPrice } = filters;
+  const query = { status: 'approved' };
+  
+  if (city) {
+    query['pickupLocation.city'] = new RegExp(city.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+  }
+  if (seats && !isNaN(seats)) {
+    query.seats = { $gte: parseInt(seats) };
+  }
+  if (fuelType && ['petrol', 'diesel', 'cng', 'electric'].includes(fuelType)) {
+    query.fuelType = fuelType;
+  }
+  if (transmission && ['manual', 'automatic'].includes(transmission)) {
+    query.transmission = transmission;
+  }
+  
+  if (minPrice || maxPrice) {
+    query.pricePerDay = {};
+    if (minPrice && !isNaN(minPrice)) query.pricePerDay.$gte = parseInt(minPrice);
+    if (maxPrice && !isNaN(maxPrice)) query.pricePerDay.$lte = parseInt(maxPrice);
+  }
+
+  return query;
+};
+
+const filterCarsByDateAvailability = (cars, startDate, endDate) => {
+  if (!startDate || !endDate) return cars;
+
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  
+  return cars.filter(car => {
+    const hasConflict = car.blockedDates.some(blocked => {
+      const blockedStart = new Date(blocked.from);
+      const blockedEnd = new Date(blocked.to);
+      return start <= blockedEnd && end >= blockedStart;
+    });
+    return !hasConflict;
+  });
+};
+
 exports.getAllCars = async (req, res) => {
   try {
-    const { city, startDate, endDate, seats, fuelType, transmission, minPrice, maxPrice } = req.query;
-    
-    let query = { status: 'approved' };
-    
-    // Sanitize and validate inputs
-    if (city && typeof city === 'string') {
-      query['pickupLocation.city'] = new RegExp(city.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
-    }
-    
-    if (seats && !isNaN(parseInt(seats))) {
-      query.seats = { $gte: parseInt(seats) };
-    }
-    
-    if (fuelType && ['petrol', 'diesel', 'cng', 'electric'].includes(fuelType)) {
-      query.fuelType = fuelType;
-    }
-    
-    if (transmission && ['manual', 'automatic'].includes(transmission)) {
-      query.transmission = transmission;
-    }
-    
-    if ((minPrice && !isNaN(parseInt(minPrice))) || (maxPrice && !isNaN(parseInt(maxPrice)))) {
-      query.pricePerDay = {};
-      if (minPrice && !isNaN(parseInt(minPrice))) query.pricePerDay.$gte = parseInt(minPrice);
-      if (maxPrice && !isNaN(parseInt(maxPrice))) query.pricePerDay.$lte = parseInt(maxPrice);
-    }
+    const { startDate, endDate, ...filters } = req.query;
+    const query = buildCarQuery(filters);
 
     let cars = await Car.find(query)
       .populate('owner', 'name phone rating')
       .sort({ createdAt: -1 });
+
+    cars = filterCarsByDateAvailability(cars, startDate, endDate);
 
     res.json({ success: true, cars });
   } catch (error) {
@@ -201,7 +204,6 @@ exports.getAllCars = async (req, res) => {
   }
 };
 
-// Get Car by ID
 exports.getCarById = async (req, res) => {
   try {
     const car = await Car.findById(req.params.id)

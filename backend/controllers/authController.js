@@ -2,14 +2,20 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 
-// Generate JWT Token
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
   });
 };
 
-// Register User
+const createUserResponse = (user) => ({
+  id: user._id,
+  name: user.name,
+  email: user.email,
+  role: user.role,
+  status: user.status
+});
+
 exports.register = async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -19,92 +25,62 @@ exports.register = async (req, res) => {
 
     const { name, email, password, phone, role } = req.body;
 
-    // Check if user exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists with this email' });
     }
 
-    // Create user
     const user = await User.create({
       name,
       email,
       password,
       phone,
       role: role || 'user',
-      status: 'approved' // All users are approved by default now
+      status: 'approved'
     });
 
     const token = generateToken(user._id);
+    const message = role === 'owner' 
+      ? 'Registration successful. Please wait for admin approval.' 
+      : 'Registration successful!';
 
     res.status(201).json({
       success: true,
-      message: role === 'owner' ? 'Registration successful. Please wait for admin approval.' : 'Registration successful!',
+      message,
       token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        status: user.status
-      }
+      user: createUserResponse(user)
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-// Login User
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    console.log('Login attempt:', email);
-
-    // Check if user exists
     const user = await User.findOne({ email });
-    if (!user) {
-      console.log('User not found:', email);
+    if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    console.log('User found:', user.email, 'Role:', user.role, 'Status:', user.status);
-
-    // Check password
-    const isPasswordValid = await user.comparePassword(password);
-    if (!isPasswordValid) {
-      console.log('Invalid password for:', email);
-      return res.status(401).json({ message: 'Invalid credentials' });
-    }
-
-    // Update last login
     user.lastLogin = new Date();
     user.loginAttempts = 0;
     await user.save();
 
     const token = generateToken(user._id);
 
-    console.log('Login successful for:', email);
-
     res.json({
       success: true,
       message: 'Login successful',
       token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        status: user.status
-      }
+      user: createUserResponse(user)
     });
   } catch (error) {
-    console.error('Login error:', error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// Get Current User
 exports.getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
@@ -114,12 +90,9 @@ exports.getMe = async (req, res) => {
   }
 };
 
-// Update Profile
 exports.updateProfile = async (req, res) => {
   try {
     const updates = req.body;
-    
-    // Don't allow updating sensitive fields
     delete updates.password;
     delete updates.role;
     delete updates.status;
@@ -136,7 +109,6 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
-// Delete User Account
 exports.deleteAccount = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -144,7 +116,6 @@ exports.deleteAccount = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check if user has active bookings or cars
     const Booking = require('../models/Booking');
     const Car = require('../models/Car');
     
@@ -175,7 +146,6 @@ exports.deleteAccount = async (req, res) => {
   }
 };
 
-// Change Password
 exports.changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
@@ -193,13 +163,11 @@ exports.changePassword = async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check current password
     const isCurrentPasswordValid = await user.comparePassword(currentPassword);
     if (!isCurrentPasswordValid) {
       return res.status(401).json({ message: 'Current password is incorrect' });
     }
 
-    // Update password
     user.password = newPassword;
     await user.save();
 

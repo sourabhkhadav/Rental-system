@@ -1,6 +1,5 @@
 import { PLATFORM_CONFIG, STATUS_COLORS } from '../constants';
 
-// Date utilities
 export const formatDate = (date) => {
   return new Date(date).toLocaleDateString('en-IN', {
     year: 'numeric',
@@ -21,7 +20,6 @@ export const getTodayDate = () => {
   return new Date().toISOString().split('T')[0];
 };
 
-// Price utilities
 export const formatPrice = (amount) => {
   return `${PLATFORM_CONFIG.CURRENCY}${amount.toLocaleString('en-IN')}`;
 };
@@ -36,7 +34,6 @@ export const calculateTotalPrice = (pricePerDay, days) => {
   };
 };
 
-// Status utilities
 export const getStatusColor = (status) => {
   return STATUS_COLORS[status] || 'bg-gray-100 text-gray-800';
 };
@@ -45,7 +42,6 @@ export const capitalizeFirst = (str) => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
 
-// Validation utilities
 export const validateEmail = (email) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
@@ -56,7 +52,6 @@ export const validatePhone = (phone) => {
   return phoneRegex.test(phone);
 };
 
-// URL utilities
 export const buildSearchParams = (filters) => {
   const params = new URLSearchParams();
   Object.keys(filters).forEach(key => {
@@ -67,7 +62,6 @@ export const buildSearchParams = (filters) => {
   return params.toString();
 };
 
-// Array utilities
 export const groupBy = (array, key) => {
   return array.reduce((result, item) => {
     const group = item[key];
@@ -79,7 +73,6 @@ export const groupBy = (array, key) => {
   }, {});
 };
 
-// Local storage utilities
 export const storage = {
   get: (key) => {
     try {
@@ -105,7 +98,6 @@ export const storage = {
   }
 };
 
-// Debounce utility
 export const debounce = (func, wait) => {
   let timeout;
   return function executedFunction(...args) {
