@@ -1,247 +1,147 @@
-# 🚗 Car Rental System
+# Car Rental System
 
-A comprehensive car rental platform built with React, Node.js, Express, and MongoDB. This system allows users to rent cars, owners to list their vehicles, and admins to manage the entire platform.
+A full-stack car rental application built with React.js and Node.js.
 
-## 🌟 Features
+## Features
 
-### 🔐 Authentication & Security
-- Email + Password registration/login
-- JWT-based authentication
-- Role-based access control (User, Owner, Admin)
-- Password hashing with bcrypt
-- Account status management (Pending, Approved, Rejected, Blocked)
+- **User Authentication**: Login/Register for Users, Owners, and Admin
+- **Car Management**: Add, edit, and manage car listings
+- **Booking System**: Book cars, manage bookings, accept/reject requests
+- **Admin Panel**: Manage users, cars, and bookings
+- **Role-based Access**: Different dashboards for Users, Owners, and Admin
 
-### 👤 User Features
-- Browse and search cars with filters
-- Book cars for specific dates
-- View booking history and status
-- Rate and review cars/owners
-- Profile management with KYC documents
+## Quick Start
 
-### 🚙 Owner Features
-- Add, edit, and manage car listings
-- Handle booking requests (Accept/Reject)
-- View earnings and booking analytics
-- Upload car documents (RC, Insurance)
-- Dashboard with comprehensive statistics
+1. **Prerequisites**
+   - Node.js (v14 or higher)
+   - MongoDB (running on localhost:27017)
 
-### 🛡️ Admin Features
-- Approve/reject user and owner registrations
-- Approve/reject car listings
-- Block/unblock users and cars
-- View platform statistics and analytics
-- Manage all bookings and resolve disputes
+2. **Installation & Start**
+   ```bash
+   # Simply run the start script
+   start.bat
+   ```
 
-### 🔍 Advanced Search
-- Filter by location, dates, price range
-- Filter by car specifications (seats, fuel type, transmission)
-- Real-time availability checking
-- Rating-based sorting
+3. **Access the Application**
+   - Frontend: http://localhost:3000
+   - Backend: http://localhost:5005
+   - **Admin Login: admin@gmail.com / admin123**
 
-## 🛠️ Tech Stack
+## Recent Login Fixes
+
+✅ **Unified Login System** - All users now use the same login page at `/login`
+✅ **Admin Auto-Creation** - System automatically creates admin@gmail.com
+✅ **Instant User Approval** - New users can login immediately after registration
+✅ **Smart Routing** - Admin users automatically redirect to admin dashboard
+
+## User Roles
+
+### Admin
+- **Login**: admin@gmail.com / admin123
+- **Features**: Manage all users, cars, and bookings
+
+### Car Owner
+- **Registration**: Sign up with role "owner"
+- **Features**: Add cars, manage bookings, view earnings
+
+### Regular User
+- **Registration**: Sign up with role "user"
+- **Features**: Search and book cars, manage bookings
+
+## Project Structure
+
+```
+Rental-system/
+├── backend/                 # Node.js API server
+│   ├── controllers/        # Route controllers
+│   ├── models/            # MongoDB models
+│   ├── routes/            # API routes
+│   ├── middleware/        # Auth & upload middleware
+│   └── server.js          # Main server file
+├── frontend/              # React.js application
+│   ├── src/
+│   │   ├── components/    # Reusable components
+│   │   ├── pages/         # Page components
+│   │   ├── context/       # Auth context
+│   │   └── services/      # API services
+│   └── public/
+└── start.bat             # Quick start script
+```
+
+## API Endpoints
+
+### Authentication
+- POST `/api/auth/register` - User registration
+- POST `/api/auth/login` - User login
+- GET `/api/auth/me` - Get current user
+
+### Cars
+- GET `/api/cars` - Get all cars
+- POST `/api/cars` - Add new car (Owner only)
+- GET `/api/cars/my-cars` - Get owner's cars
+
+### Bookings
+- POST `/api/bookings` - Create booking
+- GET `/api/bookings/user-bookings` - Get user bookings
+- GET `/api/bookings/owner-bookings` - Get owner bookings
+
+### Admin
+- GET `/api/admin/users` - Get all users
+- GET `/api/admin/cars` - Get all cars
+- GET `/api/admin/bookings` - Get all bookings
+
+## Development
 
 ### Backend
-- **Node.js** - Runtime environment
-- **Express.js** - Web framework
-- **MongoDB** - Database
-- **Mongoose** - ODM for MongoDB
-- **JWT** - Authentication
-- **Bcrypt** - Password hashing
-- **Multer** - File uploads
-- **Cloudinary** - Image storage (optional)
-
-### Frontend
-- **React** - UI library
-- **React Router** - Navigation
-- **Tailwind CSS** - Styling
-- **Axios** - HTTP client
-- **React Hook Form** - Form handling
-- **React Hot Toast** - Notifications
-- **Lucide React** - Icons
-
-## 📁 Project Structure
-
-```
-car-rental-system/
-├── backend/
-│   ├── controllers/
-│   ├── middleware/
-│   ├── models/
-│   ├── routes/
-│   ├── uploads/
-│   └── server.js
-├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── context/
-│   │   ├── pages/
-│   │   └── utils/
-│   └── package.json
-└── README.md
-```
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js (v14 or higher)
-- MongoDB (local or cloud)
-- npm or yarn
-
-### Backend Setup
-
-1. Navigate to backend directory:
 ```bash
 cd backend
-```
-
-2. Install dependencies:
-```bash
 npm install
-```
-
-3. Create environment file:
-```bash
-cp .env.example .env
-```
-
-4. Update `.env` with your configurations:
-```env
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/car-rental
-JWT_SECRET=your-super-secret-jwt-key-here
-JWT_EXPIRE=7d
-
-# Admin Config
-ADMIN_EMAIL=admin@carrental.com
-ADMIN_PASSWORD=admin123
-```
-
-5. Start the server:
-```bash
 npm run dev
 ```
 
-### Frontend Setup
-
-1. Navigate to frontend directory:
+### Frontend
 ```bash
 cd frontend
-```
-
-2. Install dependencies:
-```bash
 npm install
-```
-
-3. Start the development server:
-```bash
 npm start
 ```
 
-The application will be available at:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:5000
+## Environment Variables
 
-## 📊 Database Models
+Create `.env` file in backend directory:
+```
+PORT=5005
+MONGODB_URI=mongodb://localhost:27017/car-rental
+JWT_SECRET=your-secret-key
+JWT_EXPIRE=7d
+ADMIN_EMAIL=admin@gmail.com
+ADMIN_PASSWORD=admin123
+```
 
-### User Model
-- Personal information (name, email, phone)
-- Role-based access (user, owner, admin)
-- KYC documents (driving license, Aadhar)
-- Bank details for owners
-- Status management and ratings
+## Default Admin Account
 
-### Car Model
-- Car specifications (brand, model, seats, fuel type)
-- Pricing and availability
-- Location and pickup details
-- Documents (RC, insurance)
-- Images and features
-- Blocked dates for bookings
+- **Email**: admin@gmail.com
+- **Password**: admin123
 
-### Booking Model
-- User and car references
-- Date range and pricing
-- Status flow (pending → accepted → confirmed → completed)
-- Payment tracking
-- Reviews and ratings
-- Cancellation management
+The admin account is automatically created when the server starts.
 
-## 🔄 Booking Flow
+## Technologies Used
 
-1. **User searches** for cars with filters
-2. **User selects** a car and dates
-3. **Booking request** sent to car owner
-4. **Owner accepts/rejects** the request
-5. **System blocks** dates if accepted
-6. **Booking confirmed** and ready for pickup
-7. **Trip completed** and reviews exchanged
+### Backend
+- Node.js & Express.js
+- MongoDB & Mongoose
+- JWT Authentication
+- Multer (File uploads)
+- bcryptjs (Password hashing)
 
-## 👨‍💼 Admin Panel Features
+### Frontend
+- React.js
+- React Router
+- Tailwind CSS
+- Axios
+- React Hook Form
+- React Hot Toast
 
-- **Dashboard** with key metrics and statistics
-- **User Management** - approve, reject, block users
-- **Car Management** - approve, reject car listings
-- **Booking Management** - view, cancel, resolve disputes
-- **Reports** - earnings, activity logs, fraud detection
+## License
 
-## 🔒 Security Features
-
-- JWT token-based authentication
-- Password hashing with bcrypt
-- Role-based route protection
-- File upload validation
-- Input sanitization and validation
-- Rate limiting (can be added)
-- CORS configuration
-
-## 📱 Responsive Design
-
-- Mobile-first approach with Tailwind CSS
-- Responsive navigation and layouts
-- Touch-friendly interface
-- Optimized for all screen sizes
-
-## 🚀 Deployment
-
-### Backend Deployment
-1. Set up MongoDB Atlas or use local MongoDB
-2. Configure environment variables
-3. Deploy to platforms like Heroku, Railway, or DigitalOcean
-
-### Frontend Deployment
-1. Build the React app: `npm run build`
-2. Deploy to Netlify, Vercel, or serve with backend
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
-## 🆘 Support
-
-For support and questions:
-- Create an issue in the repository
-- Contact the development team
-
-## 🔮 Future Enhancements
-
-- Payment gateway integration
-- Real-time chat between users and owners
-- GPS tracking and navigation
-- Mobile app development
-- Advanced analytics and reporting
-- Multi-language support
-- Push notifications
-
----
-
-**Happy Coding! 🚗💨**
+This project is for educational purposes.

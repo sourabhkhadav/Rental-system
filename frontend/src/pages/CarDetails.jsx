@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import { MapPin, Users, Fuel, Settings, Star, Calendar, Phone, Car } from 'lucide-react';
+import { MapPin, Users, Fuel, Settings, Star, Calendar, Phone, Car, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import BookNowButton from '../components/ui/BookNowButton';
 
 const CarDetails = () => {
   const { id } = useParams();
@@ -95,10 +96,10 @@ const CarDetails = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
           {/* Car Details */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Images */}
             <div className="card">
               {car.images && car.images.length > 0 ? (
@@ -121,18 +122,18 @@ const CarDetails = () => {
 
             {/* Basic Info */}
             <div className="card">
-              <div className="flex justify-between items-start mb-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">{car.name}</h1>
-                  <p className="text-xl text-gray-600">{car.brand}</p>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{car.name}</h1>
+                  <p className="text-lg sm:text-xl text-gray-600">{car.brand}</p>
                 </div>
-                <div className="text-right">
-                  <div className="text-3xl font-bold text-primary-600">₹{car.pricePerDay}</div>
+                <div className="text-left sm:text-right">
+                  <div className="text-2xl sm:text-3xl font-bold text-primary-600">₹{car.pricePerDay}</div>
                   <div className="text-gray-600">per day</div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
                 <div className="flex items-center space-x-2 text-gray-600">
                   <Users className="h-5 w-5" />
                   <span>{car.seats} seats</span>
@@ -201,50 +202,61 @@ const CarDetails = () => {
 
           {/* Booking Form */}
           <div className="lg:col-span-1">
-            <div className="card sticky top-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Book This Car</h3>
+            <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 sm:p-6 lg:sticky lg:top-8">
+              <div className="text-center mb-4 sm:mb-6">
+                <div className="text-2xl sm:text-3xl font-bold text-blue-600">₹{car.pricePerDay}</div>
+                <div className="text-gray-600">per day</div>
+                <div className="flex items-center justify-center mt-2">
+                  <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                  <span className="ml-1 text-sm text-gray-600">{car.rating || 'New'} ({car.totalRatings || 0} reviews)</span>
+                </div>
+              </div>
               
-              <form onSubmit={handleBooking} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Start Date
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    className="input-field"
-                    value={bookingData.startDate}
-                    onChange={(e) => setBookingData({
-                      ...bookingData,
-                      startDate: e.target.value
-                    })}
-                    min={new Date().toISOString().split('T')[0]}
-                  />
+              <form onSubmit={handleBooking} className="space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4 inline mr-1" />
+                      Start Date
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      value={bookingData.startDate}
+                      onChange={(e) => setBookingData({
+                        ...bookingData,
+                        startDate: e.target.value
+                      })}
+                      min={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4 inline mr-1" />
+                      End Date
+                    </label>
+                    <input
+                      type="date"
+                      required
+                      className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      value={bookingData.endDate}
+                      onChange={(e) => setBookingData({
+                        ...bookingData,
+                        endDate: e.target.value
+                      })}
+                      min={bookingData.startDate || new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    End Date
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    className="input-field"
-                    value={bookingData.endDate}
-                    onChange={(e) => setBookingData({
-                      ...bookingData,
-                      endDate: e.target.value
-                    })}
-                    min={bookingData.startDate || new Date().toISOString().split('T')[0]}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                     Special Requests (Optional)
                   </label>
                   <textarea
-                    className="input-field"
+                    className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
                     rows="3"
                     placeholder="Any special requirements..."
                     value={bookingData.specialRequests}
@@ -256,36 +268,68 @@ const CarDetails = () => {
                 </div>
 
                 {totalDays > 0 && (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex justify-between items-center mb-2">
-                      <span>Duration:</span>
-                      <span>{totalDays} days</span>
-                    </div>
-                    <div className="flex justify-between items-center mb-2">
-                      <span>Price per day:</span>
-                      <span>₹{car.pricePerDay}</span>
-                    </div>
-                    <div className="flex justify-between items-center font-semibold text-lg border-t pt-2">
-                      <span>Total Amount:</span>
-                      <span>₹{totalAmount}</span>
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 sm:p-5 rounded-lg border border-blue-200">
+                    <h4 className="font-bold text-gray-900 mb-3 sm:mb-4 flex items-center text-sm sm:text-base">
+                      <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600" />
+                      Price Breakdown
+                    </h4>
+                    <div className="space-y-2 sm:space-y-3">
+                      <div className="flex justify-between text-gray-700 text-sm sm:text-base">
+                        <span>Duration:</span>
+                        <span className="font-semibold">{totalDays} {totalDays === 1 ? 'day' : 'days'}</span>
+                      </div>
+                      <div className="flex justify-between text-gray-700 text-sm sm:text-base">
+                        <span>₹{car.pricePerDay} × {totalDays} {totalDays === 1 ? 'day' : 'days'}</span>
+                        <span className="font-semibold">₹{totalAmount}</span>
+                      </div>
+                      <div className="flex justify-between text-gray-700 text-sm sm:text-base">
+                        <span>Platform fee (5%)</span>
+                        <span className="font-semibold">₹{Math.round(totalAmount * 0.05)}</span>
+                      </div>
+                      <div className="border-t-2 border-blue-200 pt-2 sm:pt-3">
+                        <div className="flex justify-between items-center">
+                          <span className="font-bold text-base sm:text-lg text-gray-900">Total Amount</span>
+                          <span className="font-bold text-xl sm:text-2xl text-blue-600">₹{totalAmount + Math.round(totalAmount * 0.05)}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
 
-                <button
-                  type="submit"
+                <BookNowButton
+                  onClick={handleBooking}
+                  loading={bookingLoading}
                   disabled={bookingLoading || !isAuthenticated}
-                  className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="text-sm sm:text-base py-2.5 sm:py-3"
                 >
-                  {bookingLoading ? 'Sending Request...' : 'Send Booking Request'}
-                </button>
+                  Book Now
+                </BookNowButton>
 
                 {!isAuthenticated && (
-                  <p className="text-sm text-gray-600 text-center">
-                    Please login to book this car
-                  </p>
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600 mb-2">Please login to book this car</p>
+                    <Link to="/login" className="text-blue-600 hover:text-blue-700 font-medium">
+                      Login Now
+                    </Link>
+                  </div>
                 )}
               </form>
+
+              {/* Security Features */}
+              <div className="mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-gray-200">
+                <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600 mb-2">
+                  <Shield className="h-4 w-4 text-green-500" />
+                  <span>Verified owner</span>
+                </div>
+                <div className="flex items-center space-x-2 text-sm text-gray-600 mb-2">
+                  <Shield className="h-4 w-4 text-green-500" />
+                  <span>Insurance covered</span>
+                </div>
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <Shield className="h-4 w-4 text-green-500" />
+                  <span>24/7 support</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
