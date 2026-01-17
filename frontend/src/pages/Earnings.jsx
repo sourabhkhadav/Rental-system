@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { earningsService } from '../services/api';
 import { DollarSign, TrendingUp, Calendar, Download, ArrowLeft } from 'lucide-react';
 
 const Earnings = () => {
@@ -21,8 +21,8 @@ const Earnings = () => {
   const fetchEarnings = async () => {
     try {
       setError(null);
-      const response = await axios.get('/api/earnings/owner');
-      setEarnings(response.data);
+      const response = await earningsService.getOwnerEarnings();
+      setEarnings(response);
     } catch (error) {
       console.error('Error fetching earnings:', error);
       setError(error.response?.data?.message || 'Failed to fetch earnings. Please try again.');

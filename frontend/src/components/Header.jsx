@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Car, Menu, X, User, LogOut, Settings, Calendar, Search, ChevronDown } from 'lucide-react';
 
-const Header = () => {
+const Header = ({ onOwnerPanelToggle }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { user, logout, isAuthenticated } = useAuth();
@@ -62,12 +62,12 @@ const Header = () => {
                     >
                       Dashboard
                     </Link>
-                    <Link 
-                      to="/owner-panel" 
+                    <button 
+                      onClick={onOwnerPanelToggle}
                       className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 font-medium"
                     >
                       Owner Panel
-                    </Link>
+                    </button>
                   </>
                 )}
                 
@@ -191,13 +191,15 @@ const Header = () => {
                       >
                         Dashboard
                       </Link>
-                      <Link
-                        to="/owner-panel"
+                      <button
+                        onClick={() => {
+                          onOwnerPanelToggle();
+                          setIsMenuOpen(false);
+                        }}
                         className="px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 font-medium"
-                        onClick={() => setIsMenuOpen(false)}
                       >
                         Owner Panel
-                      </Link>
+                      </button>
                     </>
                   )}
                   

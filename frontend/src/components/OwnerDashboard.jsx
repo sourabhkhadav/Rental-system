@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import { carService } from '../services/api';
 import { Car, Calendar, DollarSign, TrendingUp, Users, Plus, Settings, Eye, User } from 'lucide-react';
 
 const OwnerDashboard = () => {
@@ -32,8 +32,8 @@ const OwnerDashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await axios.get('/api/cars/owner-stats');
-      setStats(response.data.stats);
+      const response = await carService.getOwnerStats();
+      setStats(response.stats);
     } catch (error) {
       console.error('Error fetching stats:', error);
       // Show zero stats if API fails

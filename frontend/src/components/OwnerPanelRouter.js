@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import ModernOwnerPanel from './ModernOwnerPanel';
+import OwnerDashboard from './OwnerDashboard';
 import AddCar from '../pages/AddCar';
 import MyCars from '../pages/MyCars';
 import Bookings from '../pages/Bookings';
@@ -11,23 +11,11 @@ import Profile from '../pages/Profile';
 const OwnerPanelRouter = () => {
   const location = useLocation();
 
-  const getPageTitle = () => {
-    switch (location.pathname) {
-      case '/add-car': return 'Add New Car';
-      case '/my-cars': return 'My Cars';
-      case '/bookings': return 'Bookings';
-      case '/earnings': return 'Earnings';
-      case '/reviews': return 'Reviews';
-      case '/profile': return 'Profile';
-      default: return '';
-    }
-  };
-
   const renderContent = () => {
     switch (location.pathname) {
       case '/owner-panel':
       case '/dashboard':
-        return <ModernOwnerPanel />;
+        return <OwnerDashboard />;
       case '/add-car':
         return (
           <div className="p-6">
@@ -65,7 +53,7 @@ const OwnerPanelRouter = () => {
           </div>
         );
       default:
-        return <ModernOwnerPanel />;
+        return <OwnerDashboard />;
     }
   };
 

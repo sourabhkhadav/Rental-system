@@ -40,10 +40,7 @@ const MyCars = () => {
   const handleDeleteCar = async (carId) => {
     setDeleteLoading(carId);
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5005/api/cars/${carId}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.delete(`/api/cars/${carId}`);
       
       toast.success('Car deleted successfully');
       setCars(cars.filter(car => car._id !== carId));
