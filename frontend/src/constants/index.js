@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
   CARS: {
     BASE: '/api/cars',
     SEARCH: '/api/cars/search',
+<<<<<<< HEAD
     BY_ID: (id) => `/api/cars/${id}`,
     MY_CARS: '/api/cars/my-cars',
     OWNER_STATS: '/api/cars/owner-stats'
@@ -22,6 +23,16 @@ export const API_ENDPOINTS = {
   },
   EARNINGS: {
     OWNER: '/api/earnings/owner'
+=======
+    BY_ID: (id) => `/api/cars/${id}`
+  },
+  BOOKINGS: {
+    BASE: '/api/bookings',
+    USER: '/api/bookings/user-bookings',
+    OWNER: '/api/bookings/owner-bookings',
+    CANCEL: (id) => `/api/bookings/${id}/cancel`,
+    HANDLE: (id) => `/api/bookings/${id}/handle`
+>>>>>>> b27a4ec828499174ba4aa7f4196a9dc78a751635
   }
 };
 

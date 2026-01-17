@@ -68,12 +68,16 @@ export const carService = {
   },
 
   getMyCars: async () => {
+<<<<<<< HEAD
     const response = await api.get(API_ENDPOINTS.CARS.MY_CARS);
     return response.data;
   },
 
   getOwnerStats: async () => {
     const response = await api.get(API_ENDPOINTS.CARS.OWNER_STATS);
+=======
+    const response = await api.get(`${API_ENDPOINTS.CARS.BASE}/my-cars`);
+>>>>>>> b27a4ec828499174ba4aa7f4196a9dc78a751635
     return response.data;
   }
 };
@@ -100,13 +104,19 @@ export const bookingService = {
   },
 
   handleBookingRequest: async (id, action, reason = '') => {
+<<<<<<< HEAD
     const response = await api.put(`/api/bookings/${id}/${action}`, { 
+=======
+    const response = await api.put(API_ENDPOINTS.BOOKINGS.HANDLE(id), { 
+      action, 
+>>>>>>> b27a4ec828499174ba4aa7f4196a9dc78a751635
       rejectionReason: reason 
     });
     return response.data;
   }
 };
 
+<<<<<<< HEAD
 export const earningsService = {
   getOwnerEarnings: async () => {
     const response = await api.get(API_ENDPOINTS.EARNINGS.OWNER);
@@ -114,4 +124,6 @@ export const earningsService = {
   }
 };
 
+=======
+>>>>>>> b27a4ec828499174ba4aa7f4196a9dc78a751635
 export default api;
