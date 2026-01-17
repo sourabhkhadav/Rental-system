@@ -1,20 +1,108 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Custom styles */
-.btn-primary {
-  @apply bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-4 rounded-lg transition-colors;
+@layer base {
+  body {
+    @apply font-sans text-gray-600 antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-gray-900 font-semibold;
+  }
 }
 
-.btn-secondary {
-  @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors;
-}
-
-.input-field {
-  @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent;
-}
-
-.card {
-  @apply bg-white rounded-lg shadow-md p-6;
+@layer components {
+  /* Modern Button Styles */
+  .btn-primary {
+    @apply bg-primary-500 hover:bg-primary-600 text-white font-medium px-6 py-3 rounded-card transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+  }
+  
+  .btn-secondary {
+    @apply border-2 border-gray-300 hover:border-primary-500 text-gray-700 hover:text-primary-600 font-medium px-6 py-3 rounded-card transition-all duration-200 bg-white hover:bg-gray-50;
+  }
+  
+  .btn-accent {
+    @apply bg-accent-green hover:bg-green-600 text-white font-medium px-6 py-3 rounded-card transition-all duration-200 shadow-sm hover:shadow-md;
+  }
+  
+  /* Modern Input Styles */
+  .input-field {
+    @apply w-full px-4 py-3 border border-gray-300 rounded-card focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 text-gray-900 bg-white;
+  }
+  
+  .input-field::placeholder {
+    color: #9CA3AF !important;
+  }
+  
+  .input-field[type="date"] {
+    color: #9CA3AF !important;
+  }
+  
+  .input-field[type="date"]::-webkit-datetime-edit {
+    color: #9CA3AF !important;
+  }
+  
+  .input-field[type="date"]::-webkit-datetime-edit-text {
+    color: #9CA3AF !important;
+  }
+  
+  .input-field[type="date"]:focus {
+    color: #111827 !important;
+  }
+  
+  /* Modern Card Styles */
+  .card {
+    @apply bg-white rounded-lg-card shadow-card p-6 transition-all duration-200;
+  }
+  
+  .card-hover {
+    @apply hover:shadow-card-hover hover:scale-[1.03] cursor-pointer;
+  }
+  
+  /* Car Card Specific */
+  .car-card {
+    @apply bg-white rounded-lg-card shadow-card overflow-hidden transition-all duration-300 hover:shadow-card-hover hover:scale-[1.02];
+  }
+  
+  /* Navigation */
+  .nav-link {
+    @apply text-gray-600 hover:text-primary-600 font-medium transition-colors duration-200 px-3 py-2 rounded-md hover:bg-gray-50;
+  }
+  
+  /* Status Badges */
+  .status-badge {
+    @apply px-3 py-1 rounded-full text-sm font-medium;
+  }
+  
+  .status-pending {
+    @apply bg-yellow-100 text-yellow-800;
+  }
+  
+  .status-approved {
+    @apply bg-green-100 text-green-800;
+  }
+  
+  .status-rejected {
+    @apply bg-red-100 text-red-800;
+  }
+  
+  .status-blocked {
+    @apply bg-gray-100 text-gray-800;
+  }
+  
+  /* Loading Skeleton */
+  .skeleton {
+    @apply animate-pulse bg-gray-200 rounded;
+  }
+  
+  /* Section Spacing */
+  .section-padding {
+    @apply py-16 md:py-20;
+  }
+  
+  .container-padding {
+    @apply px-4 sm:px-6 lg:px-8;
+  }
 }

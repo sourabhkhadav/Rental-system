@@ -135,18 +135,11 @@ const OwnerDashboard = () => {
       <div className="max-w-7xl mx-auto px-6 py-8">
         
         {/* Section 1: Header */}
-        <div className="mb-12 flex items-center justify-between">
+        <div className="mb-12">
           <div>
             <h1 className="text-4xl font-bold text-gray-900 mb-3">Dashboard Overview</h1>
             <p className="text-lg text-gray-500">Track your car rental business performance</p>
           </div>
-          <button
-            onClick={fetchStats}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-          >
-            <TrendingUp className="h-4 w-4 mr-2" />
-            Refresh Stats
-          </button>
         </div>
 
         {/* Section 2: Stats Cards */}

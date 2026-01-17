@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
-// Verify JWT Token
 exports.authenticate = async (req, res, next) => {
   try {
     const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -17,6 +16,10 @@ exports.authenticate = async (req, res, next) => {
       return res.status(401).json({ message: 'Invalid token.' });
     }
 
+    if (user.status === 'blocked') {
+      return res.status(403).json({ message: 'Account blocked. Contact admin.' });
+    }
+
     req.user = user;
     next();
   } catch (error) {
@@ -24,7 +27,6 @@ exports.authenticate = async (req, res, next) => {
   }
 };
 
-// Role-based access control
 exports.authorize = (...roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
@@ -34,7 +36,6 @@ exports.authorize = (...roles) => {
   };
 };
 
-// Check if user is approved
 exports.requireApproval = (req, res, next) => {
   if (req.user.status !== 'approved') {
     return res.status(403).json({ 
@@ -45,20 +46,17 @@ exports.requireApproval = (req, res, next) => {
   next();
 };
 
-// Admin only
 exports.adminOnly = [
   exports.authenticate,
   exports.authorize('admin')
 ];
 
-// Owner only (approved)
 exports.ownerOnly = [
   exports.authenticate,
   exports.authorize('owner'),
   exports.requireApproval
 ];
 
-// User only (approved)
 exports.userOnly = [
   exports.authenticate,
   exports.authorize('user'),

@@ -1,11 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import axios from 'axios';
-
-// Configure axios base URL
-axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-axios.defaults.timeout = 600000; // 10 minutes for file uploads
-
-console.log('API Base URL:', axios.defaults.baseURL);
+import api from '../services/api';
 
 const AuthContext = createContext();
 
@@ -13,7 +7,7 @@ const initialState = {
   user: null,
   token: localStorage.getItem('token'),
   loading: true,
-  isAuthenticated: false
+  isAuthenticated: !!localStorage.getItem('token')
 };
 
 const authReducer = (state, action) => {
@@ -52,35 +46,50 @@ const authReducer = (state, action) => {
         isAuthenticated: false,
         loading: false
       };
+    case 'UPDATE_USER':
+      return {
+        ...state,
+        user: action.payload
+      };
     default:
       return state;
   }
 };
 
+const handleApiResponse = (response) => {
+  if (response.success) {
+    return { success: true, ...response };
+  }
+  return { success: false, message: response.message };
+};
+
+const handleApiError = (error, defaultMessage) => ({
+  success: false,
+  message: error.response?.data?.message || defaultMessage
+});
+
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
-  // Set auth token in axios headers
   useEffect(() => {
-    if (state.token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${state.token}`;
-    } else {
-      delete axios.defaults.headers.common['Authorization'];
-    }
-  }, [state.token]);
-
-  // Load user on app start
-  useEffect(() => {
-    if (state.token) {
-      loadUser();
-    } else {
-      dispatch({ type: 'AUTH_ERROR' });
-    }
+    const initAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          await loadUser();
+        } catch (error) {
+          dispatch({ type: 'AUTH_ERROR' });
+        }
+      } else {
+        dispatch({ type: 'AUTH_ERROR' });
+      }
+    };
+    initAuth();
   }, []);
 
   const loadUser = async () => {
     try {
-      const res = await axios.get('/api/auth/me');
+      const res = await api.get('/api/auth/me');
       dispatch({ type: 'LOAD_USER', payload: res.data.user });
     } catch (error) {
       dispatch({ type: 'AUTH_ERROR' });
@@ -89,27 +98,60 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const res = await axios.post('/api/auth/login', { email, password });
-      dispatch({ type: 'LOGIN_SUCCESS', payload: res.data });
-      return { success: true, user: res.data.user };
+      const res = await api.post('/api/auth/login', { email, password });
+      if (res.data.success) {
+        dispatch({ type: 'LOGIN_SUCCESS', payload: res.data });
+        return { success: true, user: res.data.user };
+      }
+      return handleApiResponse(res.data);
     } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.message || 'Login failed' 
-      };
+      return handleApiError(error, 'Login failed');
     }
   };
 
   const register = async (userData) => {
     try {
-      const res = await axios.post('/api/auth/register', userData);
-      dispatch({ type: 'LOGIN_SUCCESS', payload: res.data });
-      return { success: true };
+      const res = await api.post('/api/auth/register', userData);
+      if (res.data.success) {
+        dispatch({ type: 'LOGIN_SUCCESS', payload: res.data });
+        return { success: true, user: res.data.user, message: res.data.message };
+      }
+      return handleApiResponse(res.data);
     } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.message || 'Registration failed' 
-      };
+      return handleApiError(error, 'Registration failed');
+    }
+  };
+
+  const updateProfile = async (profileData) => {
+    try {
+      const res = await api.put('/api/auth/profile', profileData);
+      if (res.data.success) {
+        dispatch({ type: 'UPDATE_USER', payload: res.data.user });
+      }
+      return handleApiResponse(res.data);
+    } catch (error) {
+      return handleApiError(error, 'Profile update failed');
+    }
+  };
+
+  const changePassword = async (passwordData) => {
+    try {
+      const res = await api.put('/api/auth/change-password', passwordData);
+      return handleApiResponse(res.data);
+    } catch (error) {
+      return handleApiError(error, 'Password change failed');
+    }
+  };
+
+  const deleteAccount = async () => {
+    try {
+      const res = await api.delete('/api/auth/account');
+      if (res.data.success) {
+        dispatch({ type: 'LOGOUT' });
+      }
+      return handleApiResponse(res.data);
+    } catch (error) {
+      return handleApiError(error, 'Account deletion failed');
     }
   };
 
@@ -123,7 +165,10 @@ export const AuthProvider = ({ children }) => {
       login,
       register,
       logout,
-      loadUser
+      loadUser,
+      updateProfile,
+      changePassword,
+      deleteAccount
     }}>
       {children}
     </AuthContext.Provider>

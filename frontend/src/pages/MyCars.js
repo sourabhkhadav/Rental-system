@@ -94,17 +94,6 @@ const MyCars = () => {
 
   return (
     <div className="min-h-screen bg-[#F7F7FB]">
-      {/* Back Button */}
-      <div className="bg-white border-b border-gray-100 px-6 py-4">
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full text-sm font-medium transition-colors duration-200"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          <span>Back</span>
-        </button>
-      </div>
-
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
         {/* Header Section */}

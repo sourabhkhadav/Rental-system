@@ -7,29 +7,13 @@ const {
   deleteCar,
   getOwnerStats,
   getAllCars,
-  getCarById,
-  updateDynamicPricing,
-  getDynamicPrice,
-  updateAvailabilityCalendar,
-  addMaintenanceLog,
-  getMaintenanceHistory,
-  getAutoSuggestions,
-  createDispute,
-  getMyDisputes
+  getCarById
 } = require('../controllers/carController');
 const { authenticate, authorize } = require('../middleware/auth');
 const { uploadCarFiles, handleUploadError } = require('../middleware/upload');
 
 const router = express.Router();
 
-// Timeout middleware for file upload routes
-const uploadTimeout = (req, res, next) => {
-  req.setTimeout(600000); // 10 minutes for file uploads
-  res.setTimeout(600000);
-  next();
-};
-
-// Validation rules
 const carValidation = [
   body('name').trim().isLength({ min: 2 }).withMessage('Car name must be at least 2 characters'),
   body('brand').notEmpty().withMessage('Brand is required'),
@@ -44,24 +28,13 @@ const carValidation = [
   body('pickupCity').notEmpty().withMessage('Pickup city is required')
 ];
 
-// Routes
-router.post('/', uploadTimeout, authenticate, uploadCarFiles, handleUploadError, carValidation, addCar);
-router.get('/my-cars', authenticate, getMyCars);
-router.get('/owner-stats', authenticate, getOwnerStats);
-router.put('/:id', uploadTimeout, authenticate, authorize(['owner']), uploadCarFiles, handleUploadError, updateCar);
-router.delete('/:id', authenticate, deleteCar);
+router.post('/', authenticate, authorize(['owner']), uploadCarFiles, handleUploadError, carValidation, addCar);
+router.get('/my-cars', authenticate, authorize(['owner']), getMyCars);
+router.get('/owner-stats', authenticate, authorize(['owner']), getOwnerStats);
+router.put('/:id', authenticate, authorize(['owner']), uploadCarFiles, handleUploadError, updateCar);
+router.delete('/:id', authenticate, authorize(['owner']), deleteCar);
 
-// Advanced Features Routes
-router.put('/:carId/dynamic-pricing', authenticate, authorize(['owner']), updateDynamicPricing);
-router.get('/:carId/price/:date', getDynamicPrice);
-router.put('/:carId/availability', authenticate, authorize(['owner']), updateAvailabilityCalendar);
-router.post('/:carId/maintenance', uploadTimeout, authenticate, authorize(['owner']), uploadCarFiles, handleUploadError, addMaintenanceLog);
-router.get('/:carId/maintenance', authenticate, authorize(['owner']), getMaintenanceHistory);
-router.get('/:carId/auto-suggestions', authenticate, authorize(['owner']), getAutoSuggestions);
-router.post('/disputes', uploadTimeout, authenticate, authorize(['owner']), uploadCarFiles, handleUploadError, createDispute);
-router.get('/my-disputes', authenticate, authorize(['owner']), getMyDisputes);
-
-// Public routes
+router.get('/search', getAllCars);
 router.get('/', getAllCars);
 router.get('/:id', getCarById);
 

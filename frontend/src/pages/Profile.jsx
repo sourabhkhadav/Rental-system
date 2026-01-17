@@ -68,18 +68,18 @@ const Profile = () => {
           accountHolderName: formData.accountHolderName
         }));
       } else if (section === 'kyc') {
-        submitData.append('drivingLicense', JSON.stringify({
-          number: formData.drivingLicenseNumber
-        }));
-        submitData.append('aadhar', JSON.stringify({
-          number: formData.aadharNumber
-        }));
+        if (formData.drivingLicenseNumber) {
+          submitData.append('drivingLicenseNumber', formData.drivingLicenseNumber);
+        }
+        if (formData.aadharNumber) {
+          submitData.append('aadharNumber', formData.aadharNumber);
+        }
         
         if (files.drivingLicense) {
-          submitData.append('drivingLicense', files.drivingLicense);
+          submitData.append('drivingLicenseFile', files.drivingLicense);
         }
         if (files.aadhar) {
-          submitData.append('aadhar', files.aadhar);
+          submitData.append('aadharFile', files.aadhar);
         }
       }
 
@@ -109,16 +109,6 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Back Button */}
-        <div className="mb-6">
-          <button
-            onClick={() => navigate('/')}
-            className="inline-flex items-center space-x-2 px-4 py-2 bg-white hover:bg-gray-50 text-gray-700 rounded-xl text-sm font-medium transition-all duration-200 shadow-sm border border-gray-200 hover:shadow-md"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            <span>Back to Home</span>
-          </button>
-        </div>
         {/* Profile Header */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex items-center space-x-6">
@@ -204,6 +194,7 @@ const Profile = () => {
                     <input
                       type="tel"
                       name="phone"
+                      required
                       value={formData.phone}
                       onChange={handleChange}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
