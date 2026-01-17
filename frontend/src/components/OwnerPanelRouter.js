@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import OwnerDashboard from './OwnerDashboard';
+import ModernOwnerPanel from './ModernOwnerPanel';
 import AddCar from '../pages/AddCar';
 import MyCars from '../pages/MyCars';
 import Bookings from '../pages/Bookings';
@@ -25,8 +25,9 @@ const OwnerPanelRouter = () => {
 
   const renderContent = () => {
     switch (location.pathname) {
+      case '/owner-panel':
       case '/dashboard':
-        return <OwnerDashboard />;
+        return <ModernOwnerPanel />;
       case '/add-car':
         return (
           <div className="p-6">
@@ -64,7 +65,7 @@ const OwnerPanelRouter = () => {
           </div>
         );
       default:
-        return <OwnerDashboard />;
+        return <ModernOwnerPanel />;
     }
   };
 

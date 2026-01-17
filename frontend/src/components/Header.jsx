@@ -63,10 +63,10 @@ const Header = () => {
                       Dashboard
                     </Link>
                     <Link 
-                      to="/my-cars" 
+                      to="/owner-panel" 
                       className="px-4 py-2 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 font-medium"
                     >
-                      My Cars
+                      Owner Panel
                     </Link>
                   </>
                 )}
@@ -192,11 +192,11 @@ const Header = () => {
                         Dashboard
                       </Link>
                       <Link
-                        to="/my-cars"
+                        to="/owner-panel"
                         className="px-4 py-3 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 font-medium"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        My Cars
+                        Owner Panel
                       </Link>
                     </>
                   )}

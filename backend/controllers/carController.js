@@ -105,10 +105,22 @@ exports.updateCar = async (req, res) => {
     }
 
     const updateData = { ...req.body };
-    if (req.files.images) updateData.images = req.files.images.map(file => file.path);
-    if (req.files.rcDocument) updateData.rcDocument = req.files.rcDocument[0].path;
-    if (req.files.insurance) updateData.insurance = req.files.insurance[0].path;
-    if (req.files.pollutionCert) updateData.pollutionCert = req.files.pollutionCert[0].path;
+    
+    // Handle file uploads if provided
+    if (req.files) {
+      if (req.files.images) {
+        updateData.images = req.files.images.map(file => file.path);
+      }
+      if (req.files.rcDocument) {
+        updateData.rcDocument = req.files.rcDocument[0].path;
+      }
+      if (req.files.insurance) {
+        updateData.insurance = req.files.insurance[0].path;
+      }
+      if (req.files.pollutionCert) {
+        updateData.pollutionCert = req.files.pollutionCert[0].path;
+      }
+    }
 
     const updatedCar = await Car.findByIdAndUpdate(
       req.params.id,

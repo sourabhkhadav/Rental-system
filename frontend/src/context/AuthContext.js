@@ -7,7 +7,7 @@ const initialState = {
   user: null,
   token: localStorage.getItem('token'),
   loading: true,
-  isAuthenticated: false
+  isAuthenticated: !!localStorage.getItem('token')
 };
 
 const authReducer = (state, action) => {
@@ -72,11 +72,19 @@ export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
   useEffect(() => {
-    if (state.token) {
-      loadUser();
-    } else {
-      dispatch({ type: 'AUTH_ERROR' });
-    }
+    const initAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          await loadUser();
+        } catch (error) {
+          dispatch({ type: 'AUTH_ERROR' });
+        }
+      } else {
+        dispatch({ type: 'AUTH_ERROR' });
+      }
+    };
+    initAuth();
   }, []);
 
   const loadUser = async () => {

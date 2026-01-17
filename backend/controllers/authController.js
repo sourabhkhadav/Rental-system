@@ -36,13 +36,11 @@ exports.register = async (req, res) => {
       password,
       phone,
       role: role || 'user',
-      status: 'approved'
+      status: 'pending'
     });
 
     const token = generateToken(user._id);
-    const message = role === 'owner' 
-      ? 'Registration successful. Please wait for admin approval.' 
-      : 'Registration successful!';
+    const message = 'Registration successful. Please wait for admin approval.';
 
     res.status(201).json({
       success: true,
@@ -62,6 +60,14 @@ exports.login = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user || !(await user.comparePassword(password))) {
       return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    if (user.status === 'pending') {
+      return res.status(403).json({ message: 'Account pending admin approval' });
+    }
+
+    if (user.status === 'rejected' || user.status === 'blocked') {
+      return res.status(403).json({ message: 'Account access denied' });
     }
 
     user.lastLogin = new Date();
@@ -97,6 +103,11 @@ exports.updateProfile = async (req, res) => {
     delete updates.role;
     delete updates.status;
     
+    // Handle profile photo upload
+    if (req.file && req.file.path) {
+      updates.profilePhoto = req.file.path;
+    }
+    
     const user = await User.findByIdAndUpdate(
       req.user.id,
       updates,
@@ -104,6 +115,41 @@ exports.updateProfile = async (req, res) => {
     ).select('-password');
 
     res.json({ success: true, user, message: 'Profile updated successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.uploadKYC = async (req, res) => {
+  try {
+    const updates = {};
+    
+    if (req.files.drivingLicense) {
+      updates['drivingLicense.image'] = req.files.drivingLicense[0].path;
+    }
+    
+    if (req.files.aadhar) {
+      updates['aadhar.image'] = req.files.aadhar[0].path;
+    }
+    
+    // Update other KYC fields from body
+    if (req.body.drivingLicenseNumber) {
+      updates['drivingLicense.number'] = req.body.drivingLicenseNumber;
+    }
+    if (req.body.drivingLicenseExpiry) {
+      updates['drivingLicense.expiryDate'] = req.body.drivingLicenseExpiry;
+    }
+    if (req.body.aadharNumber) {
+      updates['aadhar.number'] = req.body.aadharNumber;
+    }
+    
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      updates,
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    res.json({ success: true, user, message: 'KYC documents uploaded successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

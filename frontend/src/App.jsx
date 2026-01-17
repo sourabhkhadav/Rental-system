@@ -4,7 +4,7 @@ import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 // Components
-import Header from './components/Header';
+import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
 import Home from './pages/Home';
@@ -16,6 +16,8 @@ import CarDetails from './pages/CarDetails';
 import AdminDashboard from './pages/AdminDashboard';
 import AddCar from './pages/AddCar';
 import Profile from './pages/Profile';
+import ModernOwnerPanel from './components/ModernOwnerPanel';
+import OwnerPanelRouter from './components/OwnerPanelRouter';
 import MyCars from './pages/MyCars';
 import Bookings from './pages/Bookings';
 import UserHome from './pages/UserHome';
@@ -48,7 +50,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Header />
+      <Navbar />
       <main className="flex-1">
         <Routes>
         {/* Home Route - Shows UserHome for logged-in users, Home for guests */}
@@ -126,6 +128,15 @@ function AppContent() {
           element={
             <ProtectedRoute requiredRole="owner">
               <MyCars />
+            </ProtectedRoute>
+          } 
+        />
+        
+        <Route 
+          path="/owner-panel" 
+          element={
+            <ProtectedRoute requiredRole="owner">
+              <OwnerPanelRouter />
             </ProtectedRoute>
           } 
         />

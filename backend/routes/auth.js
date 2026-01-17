@@ -6,10 +6,11 @@ const {
   getMe,
   updateProfile,
   deleteAccount,
-  changePassword
+  changePassword,
+  uploadKYC
 } = require('../controllers/authController');
 const { authenticate } = require('../middleware/auth');
-const { uploadProfile, handleUploadError } = require('../middleware/upload');
+const { uploadProfile, uploadKYC: uploadKYCFiles, handleUploadError } = require('../middleware/upload');
 
 const router = express.Router();
 
@@ -35,6 +36,7 @@ router.post('/register', registerValidation, register);
 router.post('/login', loginValidation, login);
 router.get('/me', authenticate, getMe);
 router.put('/profile', authenticate, uploadProfile, handleUploadError, updateProfile);
+router.put('/kyc', authenticate, uploadKYCFiles, handleUploadError, uploadKYC);
 router.put('/change-password', authenticate, changePasswordValidation, changePassword);
 router.delete('/account', authenticate, deleteAccount);
 
