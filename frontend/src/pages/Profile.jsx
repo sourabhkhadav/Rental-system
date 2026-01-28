@@ -68,18 +68,18 @@ const Profile = () => {
           accountHolderName: formData.accountHolderName
         }));
       } else if (section === 'kyc') {
-        if (formData.drivingLicenseNumber) {
-          submitData.append('drivingLicenseNumber', formData.drivingLicenseNumber);
-        }
-        if (formData.aadharNumber) {
-          submitData.append('aadharNumber', formData.aadharNumber);
-        }
+        submitData.append('drivingLicense', JSON.stringify({
+          number: formData.drivingLicenseNumber
+        }));
+        submitData.append('aadhar', JSON.stringify({
+          number: formData.aadharNumber
+        }));
         
         if (files.drivingLicense) {
-          submitData.append('drivingLicenseFile', files.drivingLicense);
+          submitData.append('drivingLicense', files.drivingLicense);
         }
         if (files.aadhar) {
-          submitData.append('aadharFile', files.aadhar);
+          submitData.append('aadhar', files.aadhar);
         }
       }
 
@@ -194,7 +194,6 @@ const Profile = () => {
                     <input
                       type="tel"
                       name="phone"
-                      required
                       value={formData.phone}
                       onChange={handleChange}
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
