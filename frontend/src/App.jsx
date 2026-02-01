@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -49,10 +49,15 @@ const ProtectedRoute = ({ children, requiredRole }) => {
 
 function AppContent() {
   const { isAuthenticated, user } = useAuth();
+  const [isOwnerPanelOpen, setOwnerPanelOpen] = useState(false);
+
+  const toggleOwnerPanel = () => {
+    setOwnerPanelOpen(!isOwnerPanelOpen);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
+      <Navbar onOwnerPanelToggle={toggleOwnerPanel} />
       <main className="flex-grow">
         <Routes>
         {/* Home Route - Different for owners vs users */}
@@ -138,15 +143,6 @@ function AppContent() {
         />
         
         <Route 
-          path="/owner-panel" 
-          element={
-            <ProtectedRoute requiredRole="owner">
-              <OwnerPanelRouter />
-            </ProtectedRoute>
-          } 
-        />
-        
-        <Route 
           path="/bookings" 
           element={
             <ProtectedRoute requiredRole="owner">
@@ -177,6 +173,12 @@ function AppContent() {
         </Routes>
       </main>
       <Footer />
+       {isAuthenticated && user?.role === 'owner' && (
+        <ModernOwnerPanel 
+          isOpen={isOwnerPanelOpen}
+          onClose={toggleOwnerPanel}
+        />
+      )}
       <Toaster position="top-right" />
     </div>
   );
