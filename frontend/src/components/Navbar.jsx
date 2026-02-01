@@ -3,11 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Car, Menu, X, User, LogOut, ChevronDown } from 'lucide-react';
 
-<<<<<<< HEAD
 const Navbar = ({ onOwnerPanelToggle }) => {
-=======
-const Navbar = () => {
->>>>>>> b27a4ec828499174ba4aa7f4196a9dc78a751635
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
    const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -58,18 +54,12 @@ const Navbar = () => {
                 </Link>
                 
                 {user?.role === 'owner' && (
-<<<<<<< HEAD
                   <button 
                     onClick={onOwnerPanelToggle}
                     className="text-slate-600 hover:text-slate-900 font-medium transition-colors"
                   >
                     Owner Panel
                   </button>
-=======
-                  <Link to="/owner-panel" className="text-slate-600 hover:text-slate-900 font-medium transition-colors">
-                    Owner Panel
-                  </Link>
->>>>>>> b27a4ec828499174ba4aa7f4196a9dc78a751635
                 )}
                 
                 {user?.role === 'admin' && (
@@ -154,7 +144,6 @@ const Navbar = () => {
                   </Link>
                   
                   {user?.role === 'owner' && (
-<<<<<<< HEAD
                     <button 
                       onClick={() => {
                         onOwnerPanelToggle();
@@ -164,11 +153,6 @@ const Navbar = () => {
                     >
                       Owner Panel
                     </button>
-=======
-                    <Link to="/owner-panel" onClick={() => setIsMenuOpen(false)} className="block px-4 py-2 text-slate-700 hover:bg-slate-50 rounded-lg transition-colors">
-                      Owner Panel
-                    </Link>
->>>>>>> b27a4ec828499174ba4aa7f4196a9dc78a751635
                   )}
                   
                   {user?.role === 'admin' && (

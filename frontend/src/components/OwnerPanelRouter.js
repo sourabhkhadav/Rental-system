@@ -1,10 +1,6 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-<<<<<<< HEAD
-import OwnerDashboard from './OwnerDashboard';
-=======
 import ModernOwnerPanel from './ModernOwnerPanel';
->>>>>>> b27a4ec828499174ba4aa7f4196a9dc78a751635
 import AddCar from '../pages/AddCar';
 import MyCars from '../pages/MyCars';
 import Bookings from '../pages/Bookings';
@@ -15,8 +11,6 @@ import Profile from '../pages/Profile';
 const OwnerPanelRouter = () => {
   const location = useLocation();
 
-<<<<<<< HEAD
-=======
   const getPageTitle = () => {
     switch (location.pathname) {
       case '/add-car': return 'Add New Car';
@@ -29,16 +23,11 @@ const OwnerPanelRouter = () => {
     }
   };
 
->>>>>>> b27a4ec828499174ba4aa7f4196a9dc78a751635
   const renderContent = () => {
     switch (location.pathname) {
       case '/owner-panel':
       case '/dashboard':
-<<<<<<< HEAD
-        return <OwnerDashboard />;
-=======
         return <ModernOwnerPanel />;
->>>>>>> b27a4ec828499174ba4aa7f4196a9dc78a751635
       case '/add-car':
         return (
           <div className="p-6">
@@ -76,11 +65,7 @@ const OwnerPanelRouter = () => {
           </div>
         );
       default:
-<<<<<<< HEAD
-        return <OwnerDashboard />;
-=======
         return <ModernOwnerPanel />;
->>>>>>> b27a4ec828499174ba4aa7f4196a9dc78a751635
     }
   };
 

@@ -26,6 +26,7 @@ import UserDashboard from './pages/UserDashboard';
 import UserBookings from './pages/UserBookings';
 import Earnings from './pages/Earnings';
 import Reviews from './pages/Reviews';
+import Footer from './components/Footer';
 
 // Protected Route Component
 const ProtectedRoute = ({ children, requiredRole }) => {
@@ -52,7 +53,8 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
-      <Routes>
+      <main className="flex-grow">
+        <Routes>
         {/* Home Route - Different for owners vs users */}
         <Route 
           path="/" 

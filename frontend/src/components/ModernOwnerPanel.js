@@ -35,12 +35,8 @@ const ModernOwnerPanel = ({ isOpen, onClose }) => {
       case '/earnings': return 'Earnings';
       case '/reviews': return 'Reviews';
       case '/profile': return 'Profile';
-<<<<<<< HEAD
       case '/dashboard': return 'Dashboard';
       default: return 'Owner Panel';
-=======
-      default: return '';
->>>>>>> b27a4ec828499174ba4aa7f4196a9dc78a751635
     }
   };
 
