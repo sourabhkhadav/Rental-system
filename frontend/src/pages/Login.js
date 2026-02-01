@@ -31,12 +31,7 @@ const Login = () => {
       
       if (result.success) {
         toast.success('Login successful!');
-        // Owner ko direct dashboard par redirect karo
-        if (result.user?.role === 'owner') {
-          navigate('/dashboard');
-        } else {
-          navigate('/');
-        }
+        navigate('/');
       } else {
         toast.error(result.message);
       }

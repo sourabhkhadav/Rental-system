@@ -5,8 +5,9 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 
 // Components
 import Navbar from './components/Navbar';
-import Footer from './components/Footer';
-
+import OwnerDashboard from './components/OwnerDashboard';
+import OwnerHomePage from './components/OwnerHomePage';
+import OwnerLandingPage from './components/OwnerLandingPage';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -51,14 +52,16 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Navbar />
-      <main className="flex-1">
-        <Routes>
-        {/* Home Route - Shows UserHome for logged-in users, Home for guests */}
-        <Route path="/" element={
-          isAuthenticated && user?.role === 'user' ? <UserHome /> : 
-          isAuthenticated && user?.role === 'admin' ? <Navigate to="/admin/dashboard" /> :
-          <Home />
-        } />
+      <Routes>
+        {/* Home Route - Different for owners vs users */}
+        <Route 
+          path="/" 
+          element={
+            isAuthenticated && user?.role === 'owner' ? 
+              <OwnerHomePage key="owner-home" /> : 
+              <Home />
+          } 
+        />
         <Route path="/search" element={<CarSearch />} />
         <Route path="/car/:id" element={<CarDetails />} />
         
